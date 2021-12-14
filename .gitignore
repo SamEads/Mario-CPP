@@ -1,0 +1,9 @@
+x64/*
+.vs/*
+*.dll
+Mario-SDL2/x64/*
+Mario-SDL2/Debug/*
+Mario-SDL2/SDL2/*
+Mario-SDL2/SDL2_image/*
+Mario-SDL2/SDL2_ttf/*
+Debug/*
