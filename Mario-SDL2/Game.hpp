@@ -1,11 +1,13 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include <SDL.h>
-#include <SDL_ttf.h>
+#include "Input.hpp"
 #include "Functions.h"
 #include "Mario.hpp"
-#include "Input.hpp"
+#include <SDL.h>
+#include <SDL_ttf.h>
+
+class Camera;
 
 class Game
 {
@@ -27,6 +29,7 @@ class Game
 		// Textures
 		SDL_Texture* playerBigTexture;
 		Input* input;
+		Vector2 camPos;
 };
 
 #endif

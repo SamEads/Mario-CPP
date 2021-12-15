@@ -1,8 +1,15 @@
+#include "Camera.hpp"
+#include "Entity.hpp"
 #include "Game.hpp"
 #include <SDL_image.h>
 #include <iostream>
 
-Mario* mario;
+Entity* mario;
+
+int gameWidth = 256;
+int gameHeight = 224;
+
+std::vector<Entity*> entities;
 
 Game::Game()
 {
@@ -11,7 +18,7 @@ Game::Game()
 	if (init == 0)
 	{
 		std::cout << "Creating window" << std::endl;
-		window = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 256 * 3, 224 * 3, SDL_WINDOW_RESIZABLE);
+		window = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 3, gameHeight * 3, SDL_WINDOW_RESIZABLE);
 		if (window)
 		{
 			std::cout << "Creating renderer" << std::endl;
@@ -19,7 +26,7 @@ Game::Game()
 			if (renderer)
 			{
 				SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-				SDL_RenderSetLogicalSize(renderer, 256, 224);
+				SDL_RenderSetLogicalSize(renderer, gameWidth, gameHeight);
 				isRunning = true;
 				std::cout << "Initializing font system" << std::endl;
 				int ttf = TTF_Init();
@@ -33,6 +40,7 @@ Game::Game()
 
 				input = new Input();
 				mario = new Mario(this);
+				entities.push_back(mario);
 
 				while (isRunning)
 				{
@@ -81,17 +89,39 @@ void Game::handleEvents()
 void Game::update()
 {
 	input->update();
-	mario->update();
+	for (Entity *entity : entities)
+	{
+		entity->update();
+	}
+	camPos.x = mario->position.x - gameWidth/2 + 8;
+	camPos.y = mario->position.y - gameHeight/2;
+	if (camPos.x < 0)
+	{
+		camPos.x = 0;
+	}
+	int camBoundsX = 256 + 128;
+	if (camPos.x + gameWidth > camBoundsX)
+	{
+		camPos.x = camBoundsX - gameWidth;
+	}
 }
 
 void Game::draw()
 {
 	// Set up draw
-	SDL_SetRenderDrawColor(renderer, 30, 90, 80, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = gameWidth;
+	rect.h = gameHeight;
+	SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+	SDL_RenderFillRect(renderer, &rect);
+
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	mario->draw();
+	mario->draw(playerBigTexture, this, mario->position.x, mario->position.y);
 
 	// Draw
 	SDL_RenderPresent(renderer);

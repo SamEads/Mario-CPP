@@ -1,25 +1,28 @@
 #ifndef MARIO_HPP
 #define MARIO_HPP
 
+#include "Entity.hpp"
 #include "Functions.h"
 #include <SDL.h>
 
 class Game;
 
-class Mario
+class Mario : public Entity
 {
 	private:
+		// Variables
 		Game* game;
 	public:
 		// Constructor
 		Mario(Game* _game);
 		// Methods
-		void update();
+		void animate();
 		void draw();
+		void update();
 		// Variables
+		bool isSkidding = false;
 		bool isGrounded = false;
-		Vector2 position;
-		Vector2 spd;
+		bool isCrouching = false;
 };
 
 #endif

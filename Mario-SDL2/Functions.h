@@ -1,7 +1,7 @@
-#include <vector>
 #ifndef FUNCTIONS_HPP
 #define FUNCTIONS_HPP
 
+#include <vector>
 
 struct Vector2
 {
