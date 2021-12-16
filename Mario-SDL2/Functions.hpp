@@ -2,6 +2,8 @@
 #define FUNCTIONS_HPP
 
 #include <vector>
+#include <string>
+#include <SDL.h>
 
 class Game;
 
@@ -26,5 +28,7 @@ struct Tile
 
 void drawTile(int x, int y, int tileX, int tileY);
 void initFunctions(Game* game);
+void drawText(int x, int y, std::string msg/*, align alignStyle*/);
+void trueMouseCoordinates(SDL_Renderer* renderer, SDL_Window* window, int* logicalMouseX, int* logicalMouseY);
 
 #endif

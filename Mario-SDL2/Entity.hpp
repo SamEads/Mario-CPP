@@ -12,15 +12,16 @@ class Entity
 	public:
 		virtual void update()
 		{
-			position.x++;
-			std::cout << position.x << std::endl;
+			std::cout << "DEFAULT ENTITY ROUTINE" << std::endl;
 		};
+		virtual void collide();
 		virtual void draw(SDL_Texture* texture, Game* game, float x, float y);
 		SDL_RendererFlip flipSpr = SDL_FLIP_NONE;
 		float imgX = 0;
 		float imgY = 0;
 		Vector2 position;
 		Vector2 spd;
+		Animation curAnim;
 };
 
 #endif // !ENTITY_HPP

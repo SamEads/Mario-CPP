@@ -2,6 +2,11 @@
 #include <iostream>
 #include "Game.hpp"
 
+void Entity::collide()
+{
+
+}
+
 void Entity::updatePosition()
 {
 	position.x += spd.x;

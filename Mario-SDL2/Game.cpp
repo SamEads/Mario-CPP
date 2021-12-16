@@ -35,7 +35,7 @@ Game::Game()
 				std::cout << "Initializing font system" << std::endl;
 				int ttf = TTF_Init();
 				if (ttf == 0)
-					font = TTF_OpenFont("Assets/Fonts/font.ttf", 8);
+					font = TTF_OpenFont("Assets/font.ttf", 8);
 				std::cout << "Entering main loop" << std::endl;
 
 				playerBigTexture = loadImage("Assets/Images/mario_big.png");
@@ -106,7 +106,7 @@ void Game::draw()
 	rect.y = rect.x = 0;
 	rect.w = gameWidth;
 	rect.h = gameHeight;
-	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(renderer, &rect);
 
 	// Prepare a white background

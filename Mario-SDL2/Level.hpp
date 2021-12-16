@@ -19,6 +19,7 @@ class Level
 		Vector2 camPos;
 		std::vector<Entity*> entities;
 		int levelWidth = 48;
+		int levelHeight = 14;
 };
 
 #endif

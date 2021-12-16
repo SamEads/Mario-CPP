@@ -2,7 +2,6 @@
 #include "Game.hpp"
 #include <iostream>
 
-Animation curAnim;
 Animation idleAnim;
 Animation walkAnim;
 Animation runAnim;
@@ -15,30 +14,25 @@ float curFrame = 0;
 Mario::Mario(Game* _game)
 {
 	game = _game;
-	idleAnim.frames = { 0, 12 };
+	idleAnim.frames = { 0, 11 };
 	walkAnim.frames = { 0, 1, 2, 1 };
-	jumpAnim.frames = { 4, 4 };
+	jumpAnim.frames = { 4, 2 };
 	skidAnim.frames = { 3 };
-	runAnim.frames = { 6, 7, 8, 7 };
-	runJumpAnim.frames = { 9 };
-	crouchAnim.frames = { 10 };
+	runAnim.frames = { 5, 6, 7, 6 };
+	runJumpAnim.frames = { 8 };
+	crouchAnim.frames = { 9 };
 }
-
-/*void Mario::draw()
-{
-}*/
 
 bool fullRun = false;
 void Mario::update()
 {
-	int fakeFloorLevel = 128 + 32;
+	int fakeFloorLevel = 160;
 	float accel = 0.0625;
-	float decel = 0.0375;
-	isSkidding = false;
-	decel = (isGrounded) ? decel : decel / 2;
+	float decel = (isGrounded) ? 0.0375 : 0.01875;
 	float maxSpd = (game->input->isPressed(SDL_SCANCODE_Z) && !isCrouching) ? (fullRun) ? 3 : 2.5 : 1.25;
 	int moveDir = game->input->isPressed(SDL_SCANCODE_RIGHT) - game->input->isPressed(SDL_SCANCODE_LEFT);
-	if (maxSpd >= 2.5 && fabsf(spd.x) > 1.25 && moveDir != 0)
+
+	if (maxSpd >= 2.5 && fabsf(spd.x) > 1.25 && moveDir != 0 && !isSkidding)
 	{
 		if (isGrounded)
 		{
@@ -65,17 +59,11 @@ void Mario::update()
 	}
 	if (isGrounded)
 	{
-		if (game->input->isPressed(SDL_SCANCODE_DOWN))
-		{
-			{
-				isCrouching = true;
-			}
-		}
-		if (!game->input->isPressed(SDL_SCANCODE_DOWN))
-		{
-			isCrouching = false;
-		}
+		isCrouching = game->input->isPressed(SDL_SCANCODE_DOWN);
 	}
+	// Set speeds between -1, 0, and 1
+	int signSpd = (spd.x > 0) ? 1 : (spd.x < 0) ? -1 : 0;
+	isSkidding = false;
 	if (moveDir != 0 && (!isCrouching || !isGrounded))
 	{
 		if (!isCrouching || !isGrounded)
@@ -90,84 +78,67 @@ void Mario::update()
 				spd.x += accel * moveDir;
 		}
 	}
-	else if (spd.x > 0)
+	// Slow down if no input
+	else if (spd.x != 0)
 	{
-		spd.x -= decel;
-		if (spd.x <= 0)
+		spd.x -= decel * signSpd;
+		if (spd.x * signSpd <= 0)
 			spd.x = 0;
 	}
-	else if (spd.x < 0)
+	// If above maximum speed, slow down
+	if (fabsf(spd.x) >= maxSpd)
 	{
-		spd.x += decel;
-		if (spd.x >= 0)
-			spd.x = 0;
-	}
-	if (spd.x >= maxSpd)
-	{
-		spd.x -= decel;
-		if (spd.x < maxSpd)
-			spd.x = maxSpd;
-	}
-	else if (spd.x <= -maxSpd)
-	{
-		spd.x += decel;
-		if (spd.x > -maxSpd)
-			spd.x = -maxSpd;
+		spd.x -= decel * signSpd;
+		if (spd.x * signSpd < maxSpd)
+			spd.x = maxSpd * signSpd;
 	}
 
-	if (!fullRun)
-		spd.y += (!game->input->isPressed(SDL_SCANCODE_X)) ? 0.375 : 0.1875;
-	else
-		spd.y += (!game->input->isPressed(SDL_SCANCODE_X)) ? 0.375 : 0.125;
+	// Apply gravity to Mario
+	float fallingGravity = 0.375;
+	// When full running, give closer to a moon-jump so that more X-distance is covered in the air (Super Mario World p-run-esque)
+	float jumpingGravity = (!fullRun) ? 0.1875 : 0.125;
+	spd.y += (!game->input->isPressed(SDL_SCANCODE_X)) ? fallingGravity : jumpingGravity;
 
+	// Prevent from gaining a ridiculous amount of downwards momentum
 	if (spd.y > 4)
 		spd.y = 4;
 
+	// Jump
 	if (game->input->wasJustPressed(SDL_SCANCODE_X))
 	{
 		if (isGrounded)
-		{
-			if (fullRun)
-				spd.y = -5;
-			else
-				spd.y = -4.875 - (fabsf(spd.x) / 4);
-		}
+			spd.y = (fullRun) ? -4.675 : -4.875 - (fabsf(spd.x) / 4);
 	}
 
 	updatePosition();
 	animate();
+	collide();
 
-	// If under solid
+	// If contact with solid going down
 	if (position.y >= fakeFloorLevel && spd.y >= 0)
 	{
 		isGrounded = true;
 		position.y = fakeFloorLevel;
 	}
 
-	// If not under solid
+	// If not under solid, update ground check
 	if (position.y < fakeFloorLevel)
 	{
 		isGrounded = false;
 	}
 
-	int displayFrame = floor(curFrame);
-	imgX = curAnim.frames.at(curFrame);
+	// Get the sprite to display in the proper vector position
+	imgX = curAnim.frames.at(floor(curFrame));
 }
 
 void Mario::animate()
 {
 	if (isCrouching)
-	{
 		curAnim = crouchAnim;
-		curFrame = 0;
-	}
 	else if (isGrounded)
 	{
 		if (isSkidding)
-		{
 			curAnim = skidAnim;
-			curFrame = 0;
-		}
 		else
 		{
 			if (spd.x != 0)
@@ -204,17 +175,17 @@ void Mario::animate()
 		curFrame = (spd.y <= 0) ? 0 : 1;
 	}
 
-	int arrSize = curAnim.frames.size();
-	if (arrSize <= 1)
+	int frameVectorSize = curAnim.frames.size();
+	if (frameVectorSize <= 1)
 	{
 		curFrame = 0;
 	}
-	else if (curFrame > arrSize - 1)
+	else if (curFrame >= frameVectorSize - 1)
 	{
-		if (arrSize > 1)
+		if (frameVectorSize > 1)
 		{
-			while (curFrame > arrSize)
-				curFrame -= arrSize;
+			while (curFrame >= frameVectorSize)
+				curFrame -= frameVectorSize;
 		}
 		else
 		{
@@ -223,5 +194,4 @@ void Mario::animate()
 	}
 	if (curFrame < 0)
 		curFrame = 0;
-	std::cout << curFrame << std::endl;
 }

@@ -1,6 +1,6 @@
 # Super Mario Game
 Current game progress:
-![Mario](jumping_mario.gif)
+![Mario](current_progress.gif)
 # Compiling
 I use Visual Studio 2019 to compile this project. The following libraries are used:
 - SDL version 2.0.18
