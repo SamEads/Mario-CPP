@@ -1,24 +1,28 @@
-#include "Camera.hpp"
 #include "Entity.hpp"
 #include "Game.hpp"
 #include <SDL_image.h>
 #include <iostream>
 
-Entity* mario;
+Level* level;
 
-int gameWidth = 256;
-int gameHeight = 224;
-
-std::vector<Entity*> entities;
+SDL_Texture* Game::loadImage(std::string location)
+{
+	SDL_Surface* tempSurface = IMG_Load(location.c_str());
+	SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, tempSurface);
+	SDL_FreeSurface(tempSurface);
+	return tex;
+}
 
 Game::Game()
 {
+	initFunctions(this);
 	std::cout << "Initializing" << std::endl;
 	init = SDL_Init(SDL_INIT_VIDEO);
 	if (init == 0)
 	{
 		std::cout << "Creating window" << std::endl;
-		window = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 3, gameHeight * 3, SDL_WINDOW_RESIZABLE);
+		window = SDL_CreateWindow("Super Mario Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 3, gameHeight * 3, SDL_WINDOW_RESIZABLE);
+		SDL_SetWindowMinimumSize(window, gameWidth, gameHeight);
 		if (window)
 		{
 			std::cout << "Creating renderer" << std::endl;
@@ -34,13 +38,12 @@ Game::Game()
 					font = TTF_OpenFont("Assets/Fonts/font.ttf", 8);
 				std::cout << "Entering main loop" << std::endl;
 
-				SDL_Surface* tempSurface = IMG_Load("Assets/Images/mario_big.png");
-				playerBigTexture = SDL_CreateTextureFromSurface(renderer, tempSurface);
-				SDL_FreeSurface(tempSurface);
+				playerBigTexture = loadImage("Assets/Images/mario_big.png");
+				tilesTexture = loadImage("Assets/Images/tiles.png");
+				cloudsTexture = loadImage("Assets/Images/clouds_bg.png");
 
 				input = new Input();
-				mario = new Mario(this);
-				entities.push_back(mario);
+				level = new Level(this);
 
 				while (isRunning)
 				{
@@ -55,10 +58,10 @@ Game::Game()
 	}
 
 	delete input;
-	delete mario;
 
 	// Free textures
 	SDL_DestroyTexture(playerBigTexture);
+	SDL_DestroyTexture(tilesTexture);
 	// Quit out
 	std::cout << "Closing font system" << std::endl;
 	TTF_CloseFont(font);
@@ -89,21 +92,7 @@ void Game::handleEvents()
 void Game::update()
 {
 	input->update();
-	for (Entity *entity : entities)
-	{
-		entity->update();
-	}
-	camPos.x = mario->position.x - gameWidth/2 + 8;
-	camPos.y = mario->position.y - gameHeight/2;
-	if (camPos.x < 0)
-	{
-		camPos.x = 0;
-	}
-	int camBoundsX = 256 + 128;
-	if (camPos.x + gameWidth > camBoundsX)
-	{
-		camPos.x = camBoundsX - gameWidth;
-	}
+	level->update();
 }
 
 void Game::draw()
@@ -112,16 +101,18 @@ void Game::draw()
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
+	// Draw inner bounds protective background
 	SDL_Rect rect;
-	rect.x = 0;
-	rect.y = 0;
+	rect.y = rect.x = 0;
 	rect.w = gameWidth;
 	rect.h = gameHeight;
-	SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 	SDL_RenderFillRect(renderer, &rect);
 
+	// Prepare a white background
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	mario->draw(playerBigTexture, this, mario->position.x, mario->position.y);
+
+	level->draw();
 
 	// Draw
 	SDL_RenderPresent(renderer);

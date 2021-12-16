@@ -3,6 +3,10 @@
 
 #include <vector>
 
+class Game;
+
+static Game* game;
+
 struct Vector2
 {
 	float x;
@@ -19,5 +23,8 @@ struct Tile
 	uint16_t x;
 	uint16_t y;
 };
+
+void drawTile(int x, int y, int tileX, int tileY);
+void initFunctions(Game* game);
 
 #endif

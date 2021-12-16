@@ -2,7 +2,7 @@
 #define MARIO_HPP
 
 #include "Entity.hpp"
-#include "Functions.h"
+#include "Functions.hpp"
 #include <SDL.h>
 
 class Game;
@@ -23,6 +23,8 @@ class Mario : public Entity
 		bool isSkidding = false;
 		bool isGrounded = false;
 		bool isCrouching = false;
+		int pmeterLevel = 112;
+		int pmeterMax = 112;
 };
 
 #endif

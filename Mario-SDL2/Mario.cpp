@@ -5,6 +5,8 @@
 Animation curAnim;
 Animation idleAnim;
 Animation walkAnim;
+Animation runAnim;
+Animation runJumpAnim;
 Animation skidAnim;
 Animation jumpAnim;
 Animation crouchAnim;
@@ -17,6 +19,8 @@ Mario::Mario(Game* _game)
 	walkAnim.frames = { 0, 1, 2, 1 };
 	jumpAnim.frames = { 4, 4 };
 	skidAnim.frames = { 3 };
+	runAnim.frames = { 6, 7, 8, 7 };
+	runJumpAnim.frames = { 9 };
 	crouchAnim.frames = { 10 };
 }
 
@@ -24,6 +28,7 @@ Mario::Mario(Game* _game)
 {
 }*/
 
+bool fullRun = false;
 void Mario::update()
 {
 	int fakeFloorLevel = 128 + 32;
@@ -31,15 +36,39 @@ void Mario::update()
 	float decel = 0.0375;
 	isSkidding = false;
 	decel = (isGrounded) ? decel : decel / 2;
-	float maxSpd = (game->input->isPressed(SDL_SCANCODE_Z) && !isCrouching) ? 2.5 : 1.25;
+	float maxSpd = (game->input->isPressed(SDL_SCANCODE_Z) && !isCrouching) ? (fullRun) ? 3 : 2.5 : 1.25;
 	int moveDir = game->input->isPressed(SDL_SCANCODE_RIGHT) - game->input->isPressed(SDL_SCANCODE_LEFT);
+	if (maxSpd >= 2.5 && fabsf(spd.x) > 1.25 && moveDir != 0)
+	{
+		if (isGrounded)
+		{
+			if (pmeterLevel > 0)
+			{
+				pmeterLevel--;
+				fullRun = false;
+			}
+			else
+			{
+				pmeterLevel = 0;
+				fullRun = true;
+			}
+		}
+	}
+	else
+	{
+		if (isGrounded)
+			fullRun = false;
+		if (pmeterLevel < pmeterMax)
+			pmeterLevel++;
+		else
+			pmeterLevel = pmeterMax;
+	}
 	if (isGrounded)
 	{
 		if (game->input->isPressed(SDL_SCANCODE_DOWN))
 		{
 			{
-				if (moveDir == 0)
-					isCrouching = true;
+				isCrouching = true;
 			}
 		}
 		if (!game->input->isPressed(SDL_SCANCODE_DOWN))
@@ -47,37 +76,18 @@ void Mario::update()
 			isCrouching = false;
 		}
 	}
-	if (game->input->wasJustPressed(SDL_SCANCODE_X))
-	{
-		if (isGrounded)
-			spd.y = -4.75 - (fabsf(spd.x) / 4);
-	}
-	if (game->input->isPressed(SDL_SCANCODE_RIGHT) && (!isCrouching || !isGrounded))
+	if (moveDir != 0 && (!isCrouching || !isGrounded))
 	{
 		if (!isCrouching || !isGrounded)
 		{
-			if (spd.x < 0)
+			if (spd.x * moveDir < 0)
 			{
 				isSkidding = true;
 			}
 			if (isGrounded)
-				flipSpr = SDL_FLIP_NONE;
-			if (spd.x < maxSpd)
-				spd.x += accel;
-		}
-	}
-	else if (game->input->isPressed(SDL_SCANCODE_LEFT) && (!isCrouching || !isGrounded)) 
-	{
-		if (!isCrouching || !isGrounded)
-		{
-			if (spd.x > 0)
-			{
-				isSkidding = true;
-			}
-			if (isGrounded)
-				flipSpr = SDL_FLIP_HORIZONTAL;
-			if (spd.x > -maxSpd)
-				spd.x -= accel;
+				flipSpr = (moveDir < 0) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			if (spd.x * moveDir < maxSpd)
+				spd.x += accel * moveDir;
 		}
 	}
 	else if (spd.x > 0)
@@ -105,14 +115,26 @@ void Mario::update()
 			spd.x = -maxSpd;
 	}
 
-	spd.y += (!game->input->isPressed(SDL_SCANCODE_X)) ? 0.375 : 0.1875;
+	if (!fullRun)
+		spd.y += (!game->input->isPressed(SDL_SCANCODE_X)) ? 0.375 : 0.1875;
+	else
+		spd.y += (!game->input->isPressed(SDL_SCANCODE_X)) ? 0.375 : 0.125;
 
 	if (spd.y > 4)
 		spd.y = 4;
 
-	position.x += spd.x;
-	position.y += spd.y;
+	if (game->input->wasJustPressed(SDL_SCANCODE_X))
+	{
+		if (isGrounded)
+		{
+			if (fullRun)
+				spd.y = -5;
+			else
+				spd.y = -4.875 - (fabsf(spd.x) / 4);
+		}
+	}
 
+	updatePosition();
 	animate();
 
 	// If under solid
@@ -150,7 +172,10 @@ void Mario::animate()
 		{
 			if (spd.x != 0)
 			{
-				curAnim = walkAnim;
+				if (!fullRun)
+					curAnim = walkAnim;
+				else
+					curAnim = runAnim;
 				if (spd.x != 0)
 					curFrame += fabsf(spd.x / 6);
 				else
@@ -172,23 +197,31 @@ void Mario::animate()
 	}
 	else
 	{
-		curAnim = jumpAnim;
+		if (!fullRun)
+			curAnim = jumpAnim;
+		else
+			curAnim = runJumpAnim;
 		curFrame = (spd.y <= 0) ? 0 : 1;
 	}
 
 	int arrSize = curAnim.frames.size();
-	if (curFrame > arrSize - 1)
+	if (arrSize <= 1)
 	{
-		if (arrSize > 0)
+		curFrame = 0;
+	}
+	else if (curFrame > arrSize - 1)
+	{
+		if (arrSize > 1)
 		{
 			while (curFrame > arrSize)
 				curFrame -= arrSize;
-			if (curFrame < 0)
-				curFrame = 0;
 		}
 		else
 		{
 			curFrame = 0;
 		}
 	}
+	if (curFrame < 0)
+		curFrame = 0;
+	std::cout << curFrame << std::endl;
 }
