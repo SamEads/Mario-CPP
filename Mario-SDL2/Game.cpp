@@ -79,20 +79,49 @@ void Game::handleEvents()
 	SDL_Event event;
 	SDL_PollEvent(&event);
 
+	// Get current mouse buttons
+	memcpy(input->curMouseButtons, input->lastMouseButtons, 2);
+
 	switch (event.type)
 	{
 		default:
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			switch (event.button.button)
+			{
+				case (SDL_BUTTON_LEFT):
+					input->curMouseButtons[0] = 1;
+					break;
+				case (SDL_BUTTON_RIGHT):
+					input->curMouseButtons[1] = 1;
+					break;
+				default:
+					break;
+			}
+			break;
+		case SDL_MOUSEBUTTONUP:
+			switch (event.button.button)
+			{
+				case (SDL_BUTTON_LEFT):
+					input->curMouseButtons[0] = 0;
+					break;
+				case (SDL_BUTTON_RIGHT):
+					input->curMouseButtons[1] = 0;
+					break;
+				default:
+					break;
+			}
 			break;
 		case SDL_QUIT:
 			isRunning = false;
 			break;
 	}
-}
+};
 
 void Game::update()
 {
-	input->update();
 	level->update();
+	input->update();
 }
 
 void Game::draw()

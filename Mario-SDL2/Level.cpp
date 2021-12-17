@@ -1,8 +1,8 @@
-#include "Functions.hpp"
 #include "Entity.hpp"
-#include "Mario.hpp"
+#include "Functions.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
+#include "Mario.hpp"
 
 Level::Level(Game* _game)
 {
@@ -18,7 +18,6 @@ void Level::update()
 {
 	if (inBlockMenu)
 		return;
-
 	for (Entity* entity : entities)
 	{
 		entity->update();
@@ -35,15 +34,7 @@ void Level::update()
 			camPos.x += mario->spd.x;
 	}
 	camPos.y = mario->position.y - game->gameHeight / 2;
-	if (camPos.x < 0)
-	{
-		camPos.x = 0;
-	}
-	int camBoundsX = levelWidth * 16;
-	if (camPos.x + game->gameWidth > camBoundsX)
-	{
-		camPos.x = camBoundsX - game->gameWidth;
-	}
+	camPos.x = SDL_clamp(camPos.x, 0, (levelWidth * 16) - game->gameWidth);
 }
 
 int selectedCellX = 0;
@@ -51,17 +42,21 @@ int selectedCellY = 0;
 int blinkBlockTimer = 0;
 void Level::draw()
 {
-
 	int x, y;
 	trueMouseCoordinates(game->renderer, game->window, &x, &y);
+	int cellX = ceil((x / 16) * 16);
+	int cellY = ceil((y / 16) * 16);
 	if (game->input->wasJustPressed(SDL_SCANCODE_SPACE))
 	{
 		inBlockMenu = !inBlockMenu;
 	}
+	if (game->input->wasJustPressed(0))
+	{
+		selectedCellX = cellX;
+		selectedCellY = cellY;
+	}
 	if (inBlockMenu)
 	{
-		int cellX = ceil((x / 16) * 16);
-		int cellY = ceil((y / 16) * 16);
 		int blinkedDist = (blinkBlockTimer >= 20) ? 1 : 0;
 		blinkBlockTimer++;
 		if (blinkBlockTimer > 40)
@@ -90,11 +85,9 @@ void Level::draw()
 		SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
 		return;
 	}
-
 	// Cut-out of the texture
 	SDL_Rect cloudSourceRect;
 	SDL_Rect cloudSizeRect;
-
 	cloudSourceRect.x = camPos.x / 2;
 	cloudSourceRect.y = 0;
 	cloudSourceRect.w = 256;
@@ -104,26 +97,16 @@ void Level::draw()
 	cloudSizeRect.w = 256;
 	cloudSizeRect.h = 224;
 	SDL_RenderCopy(game->renderer, game->cloudsTexture, &cloudSourceRect, &cloudSizeRect);
-
 	for (int i = 0; i < levelWidth; i++)
 	{
 		drawTile(i * 16, 208, 2, 1);
 		drawTile(i * 16, 192, 2, 0);
 	}
-
-	/*for (int i = 0; i < 4; i++)
-	{
-		drawTile(128, 176 - (i * 16), 5, 0);
-	}*/
-
 	for (Entity* entity : entities)
 	{
 		entity->draw(game->playerBigTexture, game, entity->position.x, entity->position.y);
 	}
-
-	// SDL_RenderDrawLine(game->renderer, game->gameWidth / 2, 0, game->gameWidth / 2, game->gameHeight);
-	//SDL_RenderFillRect();
-	SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 128);
+	/*SDL_SetRenderDrawColor(game->renderer, 0, 0, 0, 128);
 	SDL_Rect guiRect;
 	guiRect.x = 0;
 	guiRect.y = 0;
@@ -132,10 +115,10 @@ void Level::draw()
 	{
 		len = ("111111111" + std::to_string(y)).length();
 	}
-	guiRect.w = len*8;
+	guiRect.w = len * 8;
 	guiRect.h = 16;
 	SDL_RenderFillRect(game->renderer, &guiRect);
 	SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
 	drawText(0, 0, "Mouse x: " + std::to_string(x));
-	drawText(0, 8, "Mouse y: " + std::to_string(y));
+	drawText(0, 8, "Mouse y: " + std::to_string(y));*/
 }
