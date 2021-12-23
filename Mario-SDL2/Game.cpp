@@ -1,7 +1,8 @@
 #include "Entity.hpp"
 #include "Game.hpp"
-#include <SDL_image.h>
 #include <iostream>
+#include <windows.h>
+#include <GL/gl.h>
 
 Level* level;
 
@@ -17,11 +18,18 @@ Game::Game()
 {
 	initFunctions(this);
 	std::cout << "Initializing" << std::endl;
-	init = SDL_Init(SDL_INIT_VIDEO);
+	init = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	if (init == 0)
 	{
+		if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) >= 0)
+			std::cout << "Initialized audio system" << std::endl;
 		std::cout << "Creating window" << std::endl;
-		window = SDL_CreateWindow("Super Mario Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 3, gameHeight * 3, SDL_WINDOW_RESIZABLE);
+		window = SDL_CreateWindow("Super Mario Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 3, gameHeight * 3, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+		SDL_GLContext mainContext = SDL_GL_CreateContext(window);
+		//gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress);
 		SDL_SetWindowMinimumSize(window, gameWidth, gameHeight);
 		if (window)
 		{
@@ -38,12 +46,14 @@ Game::Game()
 					font = TTF_OpenFont("Assets/font.ttf", 8);
 				std::cout << "Entering main loop" << std::endl;
 
-				playerBigTexture = loadImage("Assets/Images/mario_big.png");
+				playerBigTexture = loadImage("Assets/Images/luigi_big.png");
 				tilesTexture = loadImage("Assets/Images/tiles.png");
 				cloudsTexture = loadImage("Assets/Images/clouds_bg.png");
 
 				input = new Input();
 				level = new Level(this);
+
+				jumpSound = Mix_LoadWAV("Assets/Sounds/jump.wav");
 
 				while (isRunning)
 				{
@@ -53,25 +63,22 @@ Game::Game()
 					SDL_Delay(1000 / 60);
 				}
 				std::cout << "Exited main loop" << std::endl;
+				SDL_GL_DeleteContext(mainContext);
 			}
 		}
 	}
 
 	delete input;
 
-	// Free textures
 	SDL_DestroyTexture(playerBigTexture);
 	SDL_DestroyTexture(tilesTexture);
-	// Quit out
-	std::cout << "Closing font system" << std::endl;
 	TTF_CloseFont(font);
+
 	TTF_Quit();
-	std::cout << "Closing renderer" << std::endl;
 	SDL_DestroyRenderer(renderer);
-	std::cout << "Closing window" << std::endl;
 	SDL_DestroyWindow(window);
-	std::cout << "Quitting SDL" << std::endl;
 	SDL_Quit();
+	IMG_Quit();
 }
 
 void Game::handleEvents()
@@ -80,7 +87,7 @@ void Game::handleEvents()
 	SDL_PollEvent(&event);
 
 	// Get current mouse buttons
-	memcpy(input->curMouseButtons, input->lastMouseButtons, 2);
+	memcpy(input->lastMouseButtons, input->curMouseButtons, 2);
 
 	switch (event.type)
 	{
@@ -126,6 +133,11 @@ void Game::update()
 
 void Game::draw()
 {
+	/*
+	glClearColor(1.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	SDL_GL_SwapWindow(window);
+	*/
 	// Set up draw
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);

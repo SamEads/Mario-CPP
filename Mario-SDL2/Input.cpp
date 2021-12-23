@@ -27,7 +27,7 @@ bool Input::wasJustReleased(SDL_Scancode scanCode)
 
 bool Input::isPressed(int mouseButton)
 {
-	return (curMouseButtons[mouseButton] == 1 && lastMouseButtons[mouseButton] == 1);
+	return (curMouseButtons[mouseButton] == 1);
 }
 
 bool Input::wasJustPressed(int mouseButton)

@@ -6,4 +6,6 @@ Mario-SDL2/Debug/*
 Mario-SDL2/SDL2/*
 Mario-SDL2/SDL2_image/*
 Mario-SDL2/SDL2_ttf/*
+Mario-SDL2/SDL2_mixer/*
 Debug/*
+enc_temp_folder/*

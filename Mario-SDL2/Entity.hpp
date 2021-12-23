@@ -5,6 +5,9 @@
 #include <iostream>
 #include <SDL.h>
 
+class Level;
+class Game;
+
 class Entity
 {
 	protected:
@@ -21,6 +24,12 @@ class Entity
 		float imgY = 0;
 		Vector2 position;
 		Vector2 spd;
+		Vector2 vel;
+		Level* level;
+		Game* game;
+
+		// Animations
+		float curFrame = 0;
 		Animation curAnim;
 };
 

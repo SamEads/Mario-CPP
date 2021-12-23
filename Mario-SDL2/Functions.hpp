@@ -9,6 +9,34 @@ class Game;
 
 static Game* game;
 
+/*
+Better rectangle "struct" (class) - needed float values for precise collisions!!!
+*/
+class Rect
+{
+	public:
+		float x;
+		float y;
+		float w;
+		float h;
+		float getLeft()
+		{
+			return x;
+		}
+		float getRight()
+		{
+			return x + w;
+		}
+		float getTop()
+		{
+			return y;
+		}
+		float getBottom()
+		{
+			return y + h;
+		}
+};
+
 struct Vector2
 {
 	float x;
@@ -22,8 +50,8 @@ struct Animation
 
 struct Tile
 {
-	uint16_t x;
-	uint16_t y;
+	int cellX;
+	int cellY;
 };
 
 void drawTile(int x, int y, int tileX, int tileY);

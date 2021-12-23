@@ -16,7 +16,7 @@ void drawTile(int x, int y, int tileX, int tileY)
 	sizeRect.h = srcRect.h = 16;
 	sizeRect.x = x - floor(game->level->camPos.x);
 	sizeRect.y = y;
-	SDL_RenderCopy(game->renderer, game->tilesTexture, &srcRect, &sizeRect);
+	SDL_RenderCopyEx(game->renderer, game->tilesTexture, &srcRect, &sizeRect, 0, NULL, SDL_FLIP_NONE);
 }
 
 void drawText(int x, int y, std::string msg/*, align alignStyle*/)

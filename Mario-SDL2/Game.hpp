@@ -4,9 +4,11 @@
 #include "Input.hpp"
 #include "Functions.hpp"
 #include "Mario.hpp"
+#include "Level.hpp"
 #include <SDL.h>
 #include <SDL_ttf.h>
-#include "Level.hpp"
+#include <SDL_image.h>
+#include <SDL_mixer.h>
 
 class Camera;
 
@@ -27,14 +29,15 @@ class Game
 		// Variables
 		SDL_Renderer* renderer;
 		SDL_Window* window;
-		TTF_Font* font;
 		SDL_Texture* playerBigTexture;
 		SDL_Texture* tilesTexture;
 		SDL_Texture* cloudsTexture;
+		Mix_Chunk* jumpSound;
+		TTF_Font* font;
 		Input* input;
-		int gameWidth = 256;
-		int gameHeight = 224;
 		Level* level;
+		int gameWidth = 400;
+		int gameHeight = 224;
 };
 
 #endif

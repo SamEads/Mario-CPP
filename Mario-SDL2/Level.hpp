@@ -18,7 +18,8 @@ class Level
 		Mario* mario;
 		Vector2 camPos;
 		std::vector<Entity*> entities;
-		int levelWidth = 48;
+		std::vector<std::vector<Tile*>> tiles;
+		int levelWidth = 128;
 		int levelHeight = 14;
 };
 
