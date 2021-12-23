@@ -13,25 +13,21 @@ Animation crouchAnim;
 
 Mario::Mario(Level* _level)
 {
-	if (Entity::level != nullptr)
-	{
-		std::cout << "WHAT THE FUCK" << std::endl;
-	}
 	Entity::level = _level;
 	game = Entity::level->game;
-	idleAnim.frames = { 0, 11 };
-	walkAnim.frames = { 0, 1, 2, 1 };
-	jumpAnim.frames = { 4, 2 };
-	skidAnim.frames = { 3 };
-	runAnim.frames = { 5, 6, 7, 6 };
-	runJumpAnim.frames = { 8 };
-	crouchAnim.frames = { 9 };
 }
 
 bool fullRun = false;
 bool noClip = false;
 void Mario::update()
 {
+	if (game->input->wasJustPressed(SDL_SCANCODE_1))
+	{
+		if (powerup == BIG)
+			powerup = SMALL;
+		else
+			powerup = BIG;
+	}
 	if (game->input->wasJustPressed(SDL_SCANCODE_N))
 	{
 		noClip = !noClip;
@@ -144,6 +140,31 @@ void Mario::update()
 
 void Mario::animate()
 {
+	imgY = (int)powerup;
+	switch (powerup)
+	{
+		default:
+			topClip = (isCrouching) ? 20 : 18;
+			idleAnim.frames = { 0, 9 };
+			walkAnim.frames = { 0, 1 };
+			jumpAnim.frames = { 3 };
+			skidAnim.frames = { 2 };
+			runAnim.frames = { 4, 5 };
+			runJumpAnim.frames = { 6 };
+			crouchAnim.frames = { 7 };
+			break;
+		case (BIG):
+			topClip = (isCrouching) ? 18 : 8;
+			idleAnim.frames = { 0, 11 };
+			walkAnim.frames = { 0, 1, 2, 1 };
+			jumpAnim.frames = { 4, 2 };
+			skidAnim.frames = { 3 };
+			runAnim.frames = { 5, 6, 7, 6 };
+			runJumpAnim.frames = { 8 };
+			crouchAnim.frames = { 9 };
+			break;
+	}
+
 	if (isCrouching)
 		curAnim = crouchAnim;
 	else if (vel.y == 0)

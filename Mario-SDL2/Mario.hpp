@@ -5,6 +5,12 @@
 #include "Functions.hpp"
 #include <SDL.h>
 
+enum Powerup
+{
+	SMALL = 0,
+	BIG = 1
+};
+
 class Mario : public Entity
 {
 	public:
@@ -12,13 +18,13 @@ class Mario : public Entity
 		Mario(Level* _level);
 		// Methods
 		void animate();
-		void draw();
 		void update();
 		// Variables
 		bool isSkidding = false;
 		bool isCrouching = false;
 		int pmeterLevel = 112;
 		int pmeterMax = 112;
+		Powerup powerup = SMALL;
 };
 
 #endif

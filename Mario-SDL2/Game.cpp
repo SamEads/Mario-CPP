@@ -29,7 +29,6 @@ Game::Game()
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SDL_GLContext mainContext = SDL_GL_CreateContext(window);
-		//gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress);
 		SDL_SetWindowMinimumSize(window, gameWidth, gameHeight);
 		if (window)
 		{
@@ -46,7 +45,7 @@ Game::Game()
 					font = TTF_OpenFont("Assets/font.ttf", 8);
 				std::cout << "Entering main loop" << std::endl;
 
-				playerBigTexture = loadImage("Assets/Images/luigi_big.png");
+				playerBigTexture = loadImage("Assets/Images/luigi.png");
 				tilesTexture = loadImage("Assets/Images/tiles.png");
 				cloudsTexture = loadImage("Assets/Images/clouds_bg.png");
 

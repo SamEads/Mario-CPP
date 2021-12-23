@@ -23,9 +23,6 @@ void Entity::collide()
 	int curLWidthMaxFocus = ceil((position.x + texWidth + texHeight) / texWidth);
 	int curLWidthMinFocus = floor((position.x - texHeight) / texWidth);
 	Rect hitbox;
-	int topClip = 8;
-	int leftClip = 3;
-	int rightClip = 3;
 	hitbox.x = position.x + leftClip;
 	hitbox.y = position.y + topClip;
 	hitbox.w = texWidth - leftClip - rightClip;
@@ -86,10 +83,10 @@ void Entity::collide()
 			// Left
 			if (spd.x <= 0)
 			{
-				if ((hitbox.getLeft() <= tileRealPosition.getRight())						// If the player's left side is going into the solid's right side
-				&& (hitbox.getLeft() > tileRealPosition.getRight() - fabsf(spd.x) - 2)		// If the player player is not too far into the tile (speed & extra leeway)
-				&& (hitbox.getBottom() > tileRealPosition.getTop() + fabsf(spd.y) + 1)		// If the player is above the tile enough for it not to be the tile they're standing on
-				&& (hitbox.getTop() < tileRealPosition.getBottom() + spd.y))				// If the player's top is low enough to not refer to the tile above the player
+				if ((hitbox.getLeft() <= tileRealPosition.getRight())					// If the player's left side is going into the solid's right side
+				&& (hitbox.getLeft() > tileRealPosition.getRight() - fabsf(spd.x) - 2)	// If the player player is not too far into the tile (speed & extra leeway)
+				&& (hitbox.getBottom() > tileRealPosition.getTop() + fabsf(spd.y) + 1)	// If the player is above the tile enough for it not to be the tile they're standing on
+				&& (hitbox.getTop() < tileRealPosition.getBottom() + spd.y))			// If the player's top is low enough to not refer to the tile above the player
 				{
 					position.x = tileRealPosition.getRight() - leftClip;
 					spd.x = 0;

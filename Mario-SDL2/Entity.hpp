@@ -31,6 +31,11 @@ class Entity
 		// Animations
 		float curFrame = 0;
 		Animation curAnim;
+
+		// Hitbox
+		int topClip = 8;
+		int leftClip = 3;
+		int rightClip = 3;
 };
 
 #endif // !ENTITY_HPP
