@@ -35,6 +35,10 @@ class Rect
 		{
 			return y + h;
 		}
+		float intersects(Rect rect)
+		{
+			return !(rect.getLeft() > getRight() || rect.getRight() < getLeft() || rect.getTop() > getBottom() || rect.getBottom() < getTop());
+		}
 };
 
 struct Vector2

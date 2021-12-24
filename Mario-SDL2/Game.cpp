@@ -24,7 +24,7 @@ Game::Game()
 		if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) >= 0)
 			std::cout << "Initialized audio system" << std::endl;
 		std::cout << "Creating window" << std::endl;
-		window = SDL_CreateWindow("Super Mario Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 3, gameHeight * 3, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+		window = SDL_CreateWindow("Super Mario Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 2, gameHeight * 2, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -45,7 +45,9 @@ Game::Game()
 					font = TTF_OpenFont("Assets/font.ttf", 8);
 				std::cout << "Entering main loop" << std::endl;
 
-				playerBigTexture = loadImage("Assets/Images/luigi.png");
+				marioTexture = loadImage("Assets/Images/mario.png");
+				luigiTexture = loadImage("Assets/Images/luigi.png");
+				foesTexture = loadImage("Assets/Images/foes.png");
 				tilesTexture = loadImage("Assets/Images/tiles.png");
 				cloudsTexture = loadImage("Assets/Images/clouds_bg.png");
 
@@ -53,6 +55,22 @@ Game::Game()
 				level = new Level(this);
 
 				jumpSound = Mix_LoadWAV("Assets/Sounds/jump.wav");
+
+				/*Music_Emu* emu = 0;
+				SDL_AudioSpec spec;
+				gme_open_file("Assets/Sounds/ow.spc", &emu, 48000);
+				gme_start_track(emu, 0);
+				short buf[1024];
+				if (!gme_play(emu, 1024, buf))
+					std::cout << "GME PLAYING" << std::endl;
+				spec.freq = 48000;
+				spec.format = AUDIO_S16;
+				spec.channels = 2;
+				spec.samples = 512;
+				spec.callback = gme_feedaudio;
+				spec.userdata = NULL;
+				SDL_OpenAudio(&spec, 0);
+				*/
 
 				while (isRunning)
 				{
@@ -69,13 +87,17 @@ Game::Game()
 
 	delete input;
 
-	SDL_DestroyTexture(playerBigTexture);
+	SDL_DestroyTexture(marioTexture);
+	SDL_DestroyTexture(luigiTexture);
+	SDL_DestroyTexture(foesTexture);
 	SDL_DestroyTexture(tilesTexture);
+
 	TTF_CloseFont(font);
 
-	TTF_Quit();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+
+	TTF_Quit();
 	SDL_Quit();
 	IMG_Quit();
 }

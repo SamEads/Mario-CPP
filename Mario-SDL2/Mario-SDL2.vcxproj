@@ -115,9 +115,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;VGM_YM2612_NUKED;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_image\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_ttf\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\gme;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_image\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_ttf\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/wd4146</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +148,8 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Functions.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Goomba.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -155,6 +159,8 @@
     <ClInclude Include="Entity.hpp" />
     <ClInclude Include="Functions.hpp" />
     <ClInclude Include="Game.hpp" />
+    <ClInclude Include="Enemy.hpp" />
+    <ClInclude Include="Goomba.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Level.hpp" />
     <ClInclude Include="Mario.hpp" />

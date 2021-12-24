@@ -4,11 +4,8 @@
 #include "Level.hpp"
 #include "Mario.hpp"
 #include <algorithm>
-
-bool inBlockMenu = false;
-int selectedCellX = 0;
-int selectedCellY = 0;
-int blinkBlockTimer = 0;
+#include "Enemy.hpp"
+#include <fstream>
 
 Level::Level(Game* _game)
 {
@@ -17,8 +14,15 @@ Level::Level(Game* _game)
 	mario->position.x = 32;
 	mario->position.y = 160;
 	entities.push_back(mario);
+	Mario* luigi = new Mario(this);
+	luigi->position.x = 0;
+	luigi->position.y = 160;
+	luigi->luigi = true;
+	entities.push_back(luigi);
 	camPos.x = 0;
 	camPos.y = 0;
+	Enemy *throwaway = new Enemy(this);
+	entities.push_back(throwaway);
 	// Fill map up with blank tiles
 	for (int x = 0; x < levelWidth; x++)
 	{
@@ -44,22 +48,97 @@ Level::Level(Game* _game)
 
 void Level::update()
 {
+	if (game->input->wasJustPressed(SDL_SCANCODE_S))
+	{
+		std::ofstream file;
+		file.open("level.sav");
+		file << levelWidth << " " << levelHeight << std::endl;
+		for (int i = 0; i < levelHeight; i++)
+		{
+			for (int j = 0; j < levelWidth; j++)
+			{
+
+				file << "t" << tiles[j][i]->cellX << "," << tiles[j][i]->cellY;
+				if (j < levelWidth-1) file << " ";
+			}
+			file << std::endl;
+		}
+		for (Entity* entity : entities)
+		{
+			file << "[" << entity->identifier << "," << entity->position.x << "," << entity->position.y << "]";
+		}
+		file.close();
+
+	}
+	if (game->input->wasJustPressed(SDL_SCANCODE_F))
+	{
+		std::ifstream file;
+		file.open("level.sav");
+		std::string line;
+		int x = 0;
+		int y = 0;
+		bool tileLine = false;
+		while (std::getline(file, line))
+		{
+			tileLine = false;
+			for (int i = 0; i < line.length(); i++)
+			{
+				if (line[i] == 't')
+				{
+					tileLine = true;
+					int cellX, cellY;
+					i++;
+					std::string strCellX, strCellY;
+					while (line[i] != ',')
+					{
+						strCellX += line[i];
+						i++;
+					}
+					i++;
+					while (line[i] != ' ' && i < line.length())
+					{
+						strCellY += line[i];
+						i++;
+					}
+					cellX = atoi(strCellX.c_str());
+					cellY = atoi(strCellY.c_str());
+					tiles[x][y]->cellX = cellX;
+					tiles[x][y]->cellY = cellY;
+					x++;
+				}
+			}
+			if (tileLine)
+			{
+				x = 0;
+				y ++;
+			}
+		}
+		file.close();
+	}
+	if (game->input->wasJustPressed(SDL_SCANCODE_SPACE) && editorMode)
+	{
+		inBlockMenu = !inBlockMenu;
+	}
+	if (game->input->wasJustPressed(SDL_SCANCODE_E))
+	{
+		editorMode = !editorMode;
+	}
 	if (inBlockMenu)
 		return;
-	else if (game->input->isPressed(0))
+	else if (game->input->isPressed(0) && editorMode)
 	{
 		int x, y;
 		trueMouseCoordinates(game->renderer, game->window, &x, &y);
-		x = floor((x / 16) * 16) + floor((camPos.x / 16) * 16);
+		x = floor(((x + camPos.x) / 16) * 16);
 		y = floor((y / 16) * 16);
 		tiles[x/16][y/16]->cellX = selectedCellX / 16;
 		tiles[x/16][y/16]->cellY = selectedCellY / 16;
 	}
-	else if (game->input->isPressed(1))
+	else if (game->input->isPressed(1) && editorMode)
 	{
 		int x, y;
 		trueMouseCoordinates(game->renderer, game->window, &x, &y);
-		x = floor((x / 16) * 16) + floor((camPos.x / 16) * 16);
+		x = floor(((x + camPos.x) / 16) * 16);
 		y = floor((y / 16) * 16);
 		tiles[x / 16][y / 16]->cellX = -1;
 		tiles[x / 16][y / 16]->cellY = -1;
@@ -89,11 +168,7 @@ void Level::draw()
 	trueMouseCoordinates(game->renderer, game->window, &x, &y);
 	int cellX = ceil((x / 16) * 16);
 	int cellY = ceil((y / 16) * 16);
-	if (game->input->wasJustPressed(SDL_SCANCODE_SPACE))
-	{
-		inBlockMenu = !inBlockMenu;
-	}
-	if (inBlockMenu)
+	if (inBlockMenu && editorMode)
 	{
 		if (game->input->wasJustPressed(0))
 		{
@@ -154,17 +229,17 @@ void Level::draw()
 			}
 		}
 	}
-	if (!inBlockMenu)
+	if (!inBlockMenu && editorMode)
 	{
 		SDL_SetTextureAlphaMod(game->tilesTexture, 128);
 		trueMouseCoordinates(game->renderer, game->window, &x, &y);
-		int floorX = floor((x / 16) * 16) / 16 + floor(camPos.x / 16);
+		int floorX = floor((x + camPos.x) / 16);
 		int floorY = floor((y / 16) * 16) / 16;
 		drawTile(floorX * 16, floorY * 16, selectedCellX / 16, selectedCellY / 16);
 		SDL_SetTextureAlphaMod(game->tilesTexture, 255);
 	}
 	for (Entity* entity : entities)
 	{
-		entity->draw(game->playerBigTexture, game, entity->position.x, entity->position.y);
+		entity->draw(entity->texture, game, entity->position.x, entity->position.y);
 	}
 }

@@ -27,6 +27,7 @@ void Entity::collide()
 	hitbox.y = position.y + topClip;
 	hitbox.w = texWidth - leftClip - rightClip;
 	hitbox.h = texHeight - topClip;
+
 	for (int i = hitbox.x - 4 - fabsf(spd.x); i <= hitbox.x + 1 + hitbox.w + fabsf(spd.x); i++)
 	{
 		for (int j = hitbox.y - 1 - fabsf(spd.y); j <= hitbox.y + 1 + hitbox.h + fabsf(spd.y); j++)
@@ -76,10 +77,7 @@ void Entity::collide()
 					spd.y = 0;
 				}
 			}
-			hitbox.x = position.x + leftClip;
-			hitbox.y = position.y + topClip;
-			hitbox.w = texWidth - leftClip - rightClip;
-			hitbox.h = texHeight - topClip;
+			hitbox = getHitbox();
 			// Left
 			if (spd.x <= 0)
 			{
@@ -110,9 +108,43 @@ void Entity::collide()
 	}
 }
 
+Rect Entity::getHitbox()
+{
+	int texWidth = 16;
+	int texHeight = 32;
+	Rect hitbox;
+	hitbox.x = position.x + leftClip;
+	hitbox.y = position.y + topClip;
+	hitbox.w = texWidth - leftClip - rightClip;
+	hitbox.h = texHeight - topClip;
+	return hitbox;
+}
 
 void Entity::draw(SDL_Texture* texture, Game* game, float x, float y)
 {
+	int frameVectorSize = curAnim.frames.size();
+	if (frameVectorSize <= 1)
+	{
+		curFrame = 0;
+	}
+	else if (curFrame >= frameVectorSize - 1)
+	{
+		if (frameVectorSize > 1)
+		{
+			while (curFrame >= frameVectorSize)
+				curFrame -= frameVectorSize;
+		}
+		else
+		{
+			curFrame = 0;
+		}
+	}
+	if (curFrame < 0)
+		curFrame = 0;
+
+	// Get the sprite to display in the proper vector position
+	imgX = curAnim.frames[floor(curFrame)];
+
 	SDL_Rect srcRect;
 	SDL_Rect sizeRect;
 	SDL_Point centerPoint;

@@ -2,6 +2,7 @@
 #include "Game.hpp"
 #include <iostream>
 #include <SDL_mixer.h>
+#include "Enemy.hpp"
 
 Animation idleAnim;
 Animation walkAnim;
@@ -15,12 +16,18 @@ Mario::Mario(Level* _level)
 {
 	Entity::level = _level;
 	game = Entity::level->game;
+	texture = game->marioTexture;
+	identifier = "M";
 }
 
 bool fullRun = false;
 bool noClip = false;
 void Mario::update()
 {
+	if (game->input->wasJustPressed(SDL_SCANCODE_L))
+	{
+		luigi = !luigi;
+	}
 	if (game->input->wasJustPressed(SDL_SCANCODE_1))
 	{
 		if (powerup == BIG)
@@ -41,8 +48,12 @@ void Mario::update()
 		return;
 	}
 	float accel = 0.0625;
+	if (luigi)
+		accel /= 1.25;
 	float decel = (vel.y == 0) ? 0.0375 : 0.01875;
 	float maxSpd = (game->input->isPressed(SDL_SCANCODE_Z) && !isCrouching) ? (fullRun) ? 3 : 2.5 : 1.25;
+	if (luigi)
+		maxSpd *= 1.1;
 	int moveDir = game->input->isPressed(SDL_SCANCODE_RIGHT) - game->input->isPressed(SDL_SCANCODE_LEFT);
 
 	if (maxSpd >= 2.5 && fabsf(spd.x) > 1.25 && moveDir != 0 && !isSkidding)
@@ -111,6 +122,8 @@ void Mario::update()
 	// When full running, give closer to a moon-jump so that more X-distance is covered in the air (Super Mario World p-run-esque)
 	float jumpingGravity = (!fullRun) ? 0.1875 : 0.125;
 	vel.y = (!game->input->isPressed(SDL_SCANCODE_X)) ? fallingGravity : jumpingGravity;
+	if (luigi)
+		vel.y *= 0.9;
 	spd.x += vel.x;
 	spd.y += vel.y;
 
@@ -126,20 +139,33 @@ void Mario::update()
 	{
 		if (vel.y == 0)
 		{
-			spd.y = (fullRun) ? -4.675 : -5 - (fabsf(spd.x) / 4);
+			spd.y = (fullRun) ? -5 : -5 - (fabsf(spd.x) / 4);
 			Mix_HaltChannel(1);
 			Mix_PlayChannel(1, game->jumpSound, 0);
 		}
 	}
 
-	animate();
+	for (Entity* entity : level->entities)
+	{
+		Enemy* enemy = dynamic_cast<Enemy*> (entity);
+		if (entity == enemy)
+		{
+			if (entity->getHitbox().intersects(getHitbox()))
+			{
+				if (spd.y > 0)
+					enemy->hurtEnemy(this);
+				else
+					enemy->hurtPlayer(this);
+			}
+		}
+	}
 
-	// Get the sprite to display in the proper vector position
-	imgX = curAnim.frames[floor(curFrame)];
+	animate();
 }
 
 void Mario::animate()
 {
+	texture = (luigi) ? game->luigiTexture : game->marioTexture;
 	imgY = (int)powerup;
 	switch (powerup)
 	{
@@ -206,24 +232,4 @@ void Mario::animate()
 			curAnim = runJumpAnim;
 		curFrame = (spd.y <= 0) ? 0 : 1;
 	}
-
-	int frameVectorSize = curAnim.frames.size();
-	if (frameVectorSize <= 1)
-	{
-		curFrame = 0;
-	}
-	else if (curFrame >= frameVectorSize - 1)
-	{
-		if (frameVectorSize > 1)
-		{
-			while (curFrame >= frameVectorSize)
-				curFrame -= frameVectorSize;
-		}
-		else
-		{
-			curFrame = 0;
-		}
-	}
-	if (curFrame < 0)
-		curFrame = 0;
 }

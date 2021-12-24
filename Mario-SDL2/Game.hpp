@@ -29,7 +29,9 @@ class Game
 		// Variables
 		SDL_Renderer* renderer;
 		SDL_Window* window;
-		SDL_Texture* playerBigTexture;
+		SDL_Texture* marioTexture;
+		SDL_Texture* luigiTexture;
+		SDL_Texture* foesTexture;
 		SDL_Texture* tilesTexture;
 		SDL_Texture* cloudsTexture;
 		Mix_Chunk* jumpSound;

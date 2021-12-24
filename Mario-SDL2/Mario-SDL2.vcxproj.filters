@@ -36,6 +36,12 @@
     <ClCompile Include="Level.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Goomba.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.hpp">
@@ -54,6 +60,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Level.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Goomba.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

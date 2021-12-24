@@ -25,6 +25,7 @@ class Mario : public Entity
 		int pmeterLevel = 112;
 		int pmeterMax = 112;
 		Powerup powerup = SMALL;
+		bool luigi = false;
 };
 
 #endif
