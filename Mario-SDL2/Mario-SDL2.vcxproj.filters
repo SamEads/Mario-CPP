@@ -56,7 +56,7 @@
     <ClInclude Include="Mario.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Functions.hpp">
+    <ClInclude Include="Core.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Entity.hpp">

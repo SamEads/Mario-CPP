@@ -4,8 +4,7 @@
 
 void Entity::updatePosition()
 {
-	position.x += spd.x;
-	position.y += spd.y;
+	position += spd;
 }
 
 /**
@@ -23,6 +22,12 @@ void Entity::collide()
 	int curLWidthMaxFocus = (int) ceil((position.x + texWidth + texHeight) / texWidth);
 	int curLWidthMinFocus = (int) floor((position.x - texHeight) / texWidth);
 	Rect hitbox = getHitbox();
+
+	bool leftCollide = false;
+	bool rightCollide = false;
+	bool upCollide = false;
+	bool downCollide = false;
+	bumpedHead = false;
 
 	for (int i = (int) (hitbox.x - 4 - fabsf(spd.x)); i <= hitbox.x + 1 + hitbox.w + fabsf(spd.x); i++)
 	{
@@ -49,7 +54,7 @@ void Entity::collide()
 			tileRealPosition.h = 16;
 
 			// Down
-			if (spd.y >= 0)
+			if (spd.y >= 0 && !downCollide && !upCollide)
 			{
 				if ((hitbox.getBottom() >= tileRealPosition.getTop())
 				&& (hitbox.getBottom() < tileRealPosition.getTop() + 1 + fabsf(spd.y))
@@ -59,10 +64,11 @@ void Entity::collide()
 					position.y = tileRealPosition.getTop() - texHeight;
 					vel.y = 0;
 					spd.y = 0;
+					downCollide = true;
 				}
 			}
 			// Up
-			else if (spd.y < 0)
+			else if (spd.y < 0 && !upCollide && !downCollide)
 			{
 				if ((hitbox.getTop() <= tileRealPosition.getBottom())
 				&& (hitbox.getTop() > tileRealPosition.getBottom() - 8)
@@ -71,11 +77,13 @@ void Entity::collide()
 				{
 					position.y = tileRealPosition.getBottom() - topClip;
 					spd.y = 0;
+					upCollide = true;
+					bumpedHead = true;
 				}
 			}
 			hitbox = getHitbox();
 			// Left
-			if (spd.x <= 0)
+			if (spd.x <= 0 && !leftCollide && !rightCollide)
 			{
 				if ((hitbox.getLeft() <= tileRealPosition.getRight())					// If the player's left side is going into the solid's right side
 				&& (hitbox.getLeft() > tileRealPosition.getRight() - fabsf(spd.x) - 2)	// If the player player is not too far into the tile (speed & extra leeway)
@@ -85,10 +93,11 @@ void Entity::collide()
 					position.x = tileRealPosition.getRight() - leftClip;
 					spd.x = 0;
 					vel.x = 0;
+					leftCollide = true;
 				}
 			}
 			// Right
-			else if (spd.x >= 0)
+			else if (spd.x >= 0 && !rightCollide && !leftCollide)
 			{
 				if ((hitbox.getRight() >= tileRealPosition.getLeft())
 				&& (hitbox.getRight() < tileRealPosition.getLeft() + 2 + fabsf(spd.x))
@@ -98,6 +107,7 @@ void Entity::collide()
 					position.x = tileRealPosition.getLeft() - texWidth + rightClip;
 					spd.x = 0;
 					vel.x = 0;
+					rightCollide = true;
 				}
 			}
 		}

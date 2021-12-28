@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <PublicIncludeDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_image\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2\include;$(PublicIncludeDirectories)</PublicIncludeDirectories>
+    <PublicIncludeDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\libgme\include\gme;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_image\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2\include;$(PublicIncludeDirectories)</PublicIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -117,15 +117,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;VGM_YM2612_NUKED;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\gme;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_image\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\libgme\include\gme;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_image\include;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/wd4146</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_mixer.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\lib\x64;C:\Users\Sam\source\repos\Mario-SDL2\Mario-SDL2\SDL2_image\lib\x64;C:\Users\Sam\source\repos\Mario-SDL2\Mario-SDL2\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_mixer.lib;opengl32.lib;gme.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\libgme\lib\x64;C:\Users\Sam\Documents\GitHub\Mario-SDL2\Mario-SDL2\SDL2_mixer\lib\x64;C:\Users\Sam\source\repos\Mario-SDL2\Mario-SDL2\SDL2_image\lib\x64;C:\Users\Sam\source\repos\Mario-SDL2\Mario-SDL2\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -159,7 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.hpp" />
-    <ClInclude Include="Functions.hpp" />
+    <ClInclude Include="Core.hpp" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="Enemy.hpp" />
     <ClInclude Include="Goomba.hpp" />

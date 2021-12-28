@@ -1,7 +1,7 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 
-#include "Functions.hpp"
+#include "Core.hpp"
 #include <iostream>
 #include <SDL.h>
 
@@ -30,6 +30,7 @@ class Entity
 		Level* level;
 		Game* game;
 		SDL_Texture* texture;
+		bool bumpedHead = false;
 
 		// Animations
 		float curFrame = 0;

@@ -1,5 +1,5 @@
 #include "Entity.hpp"
-#include "Functions.hpp"
+#include "Core.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
 #include "Mario.hpp"
@@ -7,6 +7,7 @@
 #include "Enemy.hpp"
 #include "HUD.hpp"
 #include <fstream>
+#include "Text.hpp"
 
 Level::Level(Game* _game)
 {
@@ -44,13 +45,6 @@ Level::Level(Game* _game)
 	// Create HUD
 	hud = new HUD(this);
 }
-
-std::vector<std::vector<Tile>> arrangedTiles
-{
-	{Tile(1, 0), Tile(2, 0), Tile(3, 0), Tile(4, 0), Tile(5, 0)},
-	{Tile(1, 1), Tile(2, 1), Tile(3, 1), Tile(4, 1), Tile(6, 0)},
-	{Tile(1, 2), Tile(2, 1), Tile(3, 2), Tile(4, 1), Tile(-1, -1)},
-};
 
 void Level::fillBlankTiles()
 {
@@ -191,11 +185,11 @@ void Level::update()
 	{
 		loadLevel("Assets/Levels/level.sav");
 	}
-	if (game->input->wasJustPressed(SDL_SCANCODE_SPACE) && editorMode)
+	if (game->input->wasJustPressed(SDL_SCANCODE_E) && editorMode)
 	{
 		inBlockMenu = !inBlockMenu;
 	}
-	if (game->input->wasJustPressed(SDL_SCANCODE_E))
+	if (game->input->wasJustPressed(SDL_SCANCODE_SPACE))
 	{
 		editorMode = !editorMode;
 	}
@@ -233,9 +227,10 @@ void Level::update()
 
 	for (Entity* entity : entities)
 	{
-		entity->update();
+		if (entity->position.x+32 > camPos.x && entity->position.x-32 < camPos.x + game->gameWidth)
+			entity->update();
 	}
-	int screenMiddle = (camPos.x + game->gameWidth / 2);
+	int screenMiddle = (camPos.x + game->gameWidth / 2) - 8;
 	if (mario->position.x > screenMiddle + 16)
 	{
 		if (mario->spd.x > 0)
@@ -250,8 +245,11 @@ void Level::update()
 	camPos.x = SDL_clamp(camPos.x, 0, (levelWidth * 16) - game->gameWidth);
 }
 
+Vector2 tilePositionOffset;
 void Level::draw()
 {
+	tilePositionOffset.x = 16;
+	tilePositionOffset.y = 16;
 	#if DEBUG
 	int x, y;
 	trueMouseCoordinates(game->renderer, game->window, &x, &y);
@@ -261,8 +259,8 @@ void Level::draw()
 	{
 		if (game->input->wasJustPressed(0))
 		{
-			selectedCellX = cellX;
-			selectedCellY = cellY;
+			selectedCellX = cellX - tilePositionOffset.x;
+			selectedCellY = cellY - tilePositionOffset.y;
 		}
 		int blinkedDist = (blinkBlockTimer >= 20) ? 1 : 0;
 		blinkBlockTimer++;
@@ -277,26 +275,12 @@ void Level::draw()
 		fullSizeImg.h = 144;
 		SDL_RenderCopy(game->renderer, game->tilesTexture, &fullSizeImg, &fullSizeImg);
 		*/
-		SDL_Rect tileWRect;
-		SDL_Rect tileWDestRect;
-		tileWRect.x = 0;
-		tileWRect.y = 0;
-		tileWRect.w = 16;
-		tileWRect.h = 16;
-		tileWDestRect.x = 0;
-		tileWDestRect.y = 0;
-		tileWDestRect.w = 16;
-		tileWDestRect.h = 16;
 		// TODO: flip
 		for (int _x = 0; _x < arrangedTiles.size(); _x++)
 		{
 			for (int _y = 0; _y < arrangedTiles[_x].size(); _y++)
 			{
-				tileWDestRect.x = _y * 16;
-				tileWDestRect.y = _x * 16;
-				tileWRect.x = arrangedTiles[_x][_y].cellX * 16;
-				tileWRect.y = arrangedTiles[_x][_y].cellY * 16;
-				drawTile(_y * 16, _x * 16, arrangedTiles[_x][_y].cellX, arrangedTiles[_x][_y].cellY, false);
+				drawTile((_y * 16) + tilePositionOffset.x, (_x * 16) + tilePositionOffset.y, arrangedTiles[_x][_y].cellX, arrangedTiles[_x][_y].cellY, false);
 				//SDL_RenderCopy(game->renderer, game->tilesTexture, &tileWRect, &tileWDestRect);
 			}
 		}
@@ -307,8 +291,8 @@ void Level::draw()
 		hoveredBlock.y = cellY;
 		hoveredBlock.w = 16;
 		hoveredBlock.h = 16;
-		selectedBlock.x = selectedCellX + blinkedDist;
-		selectedBlock.y = selectedCellY + blinkedDist;
+		selectedBlock.x = selectedCellX + blinkedDist + tilePositionOffset.x;
+		selectedBlock.y = selectedCellY + blinkedDist + tilePositionOffset.y;
 		selectedBlock.w = hoveredBlock.w - (blinkedDist * 2);
 		selectedBlock.h = hoveredBlock.h - (blinkedDist * 2);
 		// Draw overlay on selected block
@@ -382,4 +366,33 @@ void Level::draw()
 
 	// Draw heads up display
 	hud->draw();
+
+	Text text;
+	text.alignment = left;
+	text.text = (!mario->luigi) ? "MARIO" : "LUIGI";
+	text.draw(game, 24, 16);
+	text.text = "000000";
+	text.draw(game, 24, 24);
+	text.text = "x00";
+	text.draw(game, 96, 24);
+	/*text.text = "x00";
+	text.draw(game, 32, 24);*/
+	text.text = "WORLD";
+	text.draw(game, 144, 16);
+	text.text = "!-!";
+	text.draw(game, 152, 24);
+	text.alignment = right;
+	text.text = "TIME";
+	text.draw(game, game->gameWidth - 24, 16);
+	text.text = "000";
+	text.draw(game, game->gameWidth - 24, 24);
+	SDL_Rect coinSrcRect, coinDstRect;
+	auto shineTick = game->shineTick >= 3 ? 5 : (floor(game->shineTick) * 5);
+	coinSrcRect.x = 44 + shineTick;
+	coinSrcRect.y = 0;
+	coinDstRect.w = coinSrcRect.w = 5;
+	coinDstRect.h = coinSrcRect.h = 8;
+	coinDstRect.x = 90;
+	coinDstRect.y = 24;
+	SDL_RenderCopy(game->renderer, game->hudTextures, &coinSrcRect, &coinDstRect);
 }

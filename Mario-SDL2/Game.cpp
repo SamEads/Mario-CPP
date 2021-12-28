@@ -4,6 +4,7 @@
 #include <iostream>
 #include <windows.h>
 #include <GL/gl.h>
+#include <gme.h>
 
 Level* level;
 
@@ -15,14 +16,20 @@ SDL_Texture* Game::loadImage(std::string location)
 	return tex;
 }
 
+Music_Emu* emu;
+void audioCallback(void* userData, Uint8* out, int count)
+{
+	gme_play(emu, 1024, (short*) out);
+}
+
 Game::Game()
 {
 	initFunctions(this);
 	std::cout << "Initializing" << std::endl;
-	init = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+	init = SDL_Init(SDL_INIT_VIDEO);
 	if (init == 0)
 	{
-		if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) >= 0)
+		if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) >= 0)
 			std::cout << "Initialized audio system" << std::endl;
 		std::cout << "Creating window" << std::endl;
 		window = SDL_CreateWindow("Super Mario Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 2, gameHeight * 2, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
@@ -51,18 +58,45 @@ Game::Game()
 				hudTextures = loadImage("Assets/Images/hud.png");
 
 				jumpSound = Mix_LoadWAV("Assets/Sounds/jump.wav");
+				bumpSound = Mix_LoadWAV("Assets/Sounds/bump.wav");
 				pmeterSound = Mix_LoadWAV("Assets/Sounds/pmeter.wav");
 				skidSound = Mix_LoadWAV("Assets/Sounds/skid.wav");
 
 				input = new Input();
 				level = new Level(this);
 
+				gme_open_file("Assets/Sounds/overworld.spc", &emu, 44100);
+				gme_start_track(emu, 0);
+				static SDL_AudioSpec spec;
+				spec.freq = 44100;
+				spec.format = AUDIO_S16SYS;
+				spec.channels = 2;
+				spec.samples = 1024 / (spec.channels);
+				spec.callback = audioCallback;
+				spec.userdata = emu;
+				SDL_OpenAudio(&spec, 0);
+				SDL_PauseAudio(false);
+				gme_enable_accuracy(emu, true);
+
 				while (isRunning)
 				{
+					if (input->wasJustPressed(SDL_SCANCODE_O))
+					{
+						tempo += 0.1f;
+					}
+					if (input->wasJustPressed(SDL_SCANCODE_U))
+					{
+						tempo -= 0.1f;
+					}
+					if (input->wasJustPressed(SDL_SCANCODE_I))
+					{
+						tempo = 1;
+					}
+					gme_set_tempo(emu, tempo);
 					handleEvents();
 					update();
 					draw();
-					SDL_Delay(1000 / 60);
+					SDL_Delay(1000.0f / 60.0f);	
 				}
 				std::cout << "Exited main loop" << std::endl;
 				SDL_GL_DeleteContext(mainContext);
@@ -72,16 +106,15 @@ Game::Game()
 
 	delete input;
 
+	gme_delete(emu);
 	SDL_DestroyTexture(marioTexture);
 	SDL_DestroyTexture(luigiTexture);
 	SDL_DestroyTexture(foesTexture);
 	SDL_DestroyTexture(tilesTexture);
 	SDL_DestroyTexture(fontTexture);
 	SDL_DestroyTexture(hudTextures);
-
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-
 	SDL_Quit();
 	IMG_Quit();
 }

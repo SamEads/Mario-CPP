@@ -11,6 +11,7 @@ Enemy::Enemy(Level* _level)
 void Enemy::hurtEnemy(Mario* mario)
 {
 	mario->spd.y = -3;
+	mario->isJumping = false;
 	die();
 }
 

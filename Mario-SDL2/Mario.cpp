@@ -4,14 +4,6 @@
 #include <SDL_mixer.h>
 #include "Enemy.hpp"
 
-Animation idleAnim;
-Animation walkAnim;
-Animation runAnim;
-Animation runJumpAnim;
-Animation skidAnim;
-Animation jumpAnim;
-Animation crouchAnim;
-
 Mario::Mario(Level* _level)
 {
 	Entity::level = _level;
@@ -20,8 +12,6 @@ Mario::Mario(Level* _level)
 	identifier = "M";
 }
 
-bool fullRun = false;
-bool noClip = false;
 void Mario::update()
 {
 	#if DEBUG
@@ -143,14 +133,10 @@ void Mario::update()
 	vel.y = (!game->input->isPressed(SDL_SCANCODE_X)) ? fallingGravity : jumpingGravity;
 	if (luigi)
 		vel.y *= 0.9;
-	spd.x += vel.x;
-	spd.y += vel.y;
+	spd += vel;
 
-	// Stop the jumping animation routine
-	if (spd.y >= 0)
-	{
-		isJumping = false;
-	}
+	if ((position.x < 0 && spd.x < 0) || (position.x > (level->levelWidth*16)-16 && spd.x > 0))
+		spd.x = 0;
 
 	// Prevent from gaining a ridiculous amount of downwards momentum
 	if (spd.y > 4)
@@ -158,6 +144,16 @@ void Mario::update()
 
 	updatePosition();
 	collide();
+
+	if (bumpedHead)
+	{
+		Mix_Volume(4, MIX_MAX_VOLUME / 6);
+		Mix_HaltChannel(4);
+		Mix_PlayChannel(4, game->bumpSound, 0);
+	}
+
+	if (vel.y == 0 && isJumping)
+		isJumping = false;
 
 	// Jump
 	if (game->input->wasJustPressed(SDL_SCANCODE_X))
@@ -255,10 +251,10 @@ void Mario::animate()
 	}
 	else
 	{
-		if (!fullRun)
+		if (!fullRun || !isJumping)
 			curAnim = jumpAnim;
 		else
 			curAnim = runJumpAnim;
-		curFrame = (isJumping) ? 0 : 1;
+		curFrame = (isJumping && spd.y < 0) ? 0 : 1;
 	}
 }

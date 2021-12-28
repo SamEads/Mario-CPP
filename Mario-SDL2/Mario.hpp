@@ -2,7 +2,7 @@
 #define MARIO_HPP
 
 #include "Entity.hpp"
-#include "Functions.hpp"
+#include "Core.hpp"
 #include <SDL.h>
 
 enum Powerup
@@ -28,6 +28,16 @@ class Mario : public Entity
 		int pmeterMax = 112;
 		Powerup powerup = SMALL;
 		bool luigi = false;
+		bool fullRun = false;
+		bool noClip = false;
+		// Animations
+		Animation idleAnim;
+		Animation walkAnim;
+		Animation runAnim;
+		Animation runJumpAnim;
+		Animation skidAnim;
+		Animation jumpAnim;
+		Animation crouchAnim;
 };
 
 #endif

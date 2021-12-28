@@ -1,12 +1,13 @@
 # Super Mario C++
 Current game progress:
-![Mario](moving.gif)
+![Mario](marioprogress.gif)
 (Example stage - two players only to show differing player physics)
 # Compiling
 I use Visual Studio 2022 to compile this project. The following libraries are utilized:
 - SDL version 2.0.18
 - SDL_image 2.0.5
 - SDL_mixer 2.0
+- game-music-emu
 # Current Core Features
 - Variable jumping Mario & Luigi
 - Hand-coded AABB collision

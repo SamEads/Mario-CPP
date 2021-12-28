@@ -2,7 +2,7 @@
 #define GAME_HPP
 
 #include "Input.hpp"
-#include "Functions.hpp"
+#include "Core.hpp"
 #include "Mario.hpp"
 #include "Level.hpp"
 #include <SDL.h>
@@ -39,12 +39,14 @@ class Game
 		Mix_Chunk* jumpSound;
 		Mix_Chunk* pmeterSound;
 		Mix_Chunk* skidSound;
+		Mix_Chunk* bumpSound;
 
 		Input* input;
 		Level* level;
-		int gameWidth = 256;
-		int gameHeight = 224;
+		const int gameWidth = 256;
+		const int gameHeight = 224;
 		float shineTick = 0;
+		float tempo = 1;
 };
 
 #endif

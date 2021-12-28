@@ -1,4 +1,4 @@
-#include "Functions.hpp"
+#include "Core.hpp"
 #include "Game.hpp"
 
 void initFunctions(Game *_game)
