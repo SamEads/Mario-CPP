@@ -1,6 +1,6 @@
-# Super Mario Game
+# Super Mario C++
 Current game progress:
-![Mario](bros.gif)
+![Mario](moving.gif)
 (Example stage - two players only to show differing player physics)
 # Compiling
 I use Visual Studio 2022 to compile this project. The following libraries are utilized:

@@ -24,6 +24,7 @@ bool fullRun = false;
 bool noClip = false;
 void Mario::update()
 {
+	#if DEBUG
 	if (game->input->wasJustPressed(SDL_SCANCODE_L))
 	{
 		luigi = !luigi;
@@ -47,11 +48,19 @@ void Mario::update()
 		position.y += yMoveDir * 4;
 		return;
 	}
+	#endif
+
+	// 8 frame run grace period (fireballing is much more natural)
+	if (game->input->isPressed(SDL_SCANCODE_Z))
+		runTime = 8;
+	else if (runTime > 0)
+		--runTime;
+
 	float accel = 0.0625;
 	if (luigi)
 		accel /= 1.25;
 	float decel = (vel.y == 0) ? 0.0375 : 0.01875;
-	float maxSpd = (game->input->isPressed(SDL_SCANCODE_Z) && !isCrouching) ? (fullRun) ? 3 : 2.5 : 1.25;
+	float maxSpd = (runTime > 0 && !isCrouching) ? (fullRun) ? 3 : 2.5 : 1.25;
 	if (luigi)
 		maxSpd *= 1.1;
 	int moveDir = game->input->isPressed(SDL_SCANCODE_RIGHT) - game->input->isPressed(SDL_SCANCODE_LEFT);
@@ -81,6 +90,16 @@ void Mario::update()
 		else
 			pmeterLevel = pmeterMax;
 	}
+
+	if (pmeterLevel == 0)
+	{
+		if (!Mix_Playing(2))
+		{
+			Mix_PlayChannel(2, game->pmeterSound, false);
+			Mix_Volume(2, MIX_MAX_VOLUME / 6);
+		}
+	}
+
 	if (vel.y == 0)
 	{
 		isCrouching = game->input->isPressed(SDL_SCANCODE_DOWN);
@@ -127,6 +146,12 @@ void Mario::update()
 	spd.x += vel.x;
 	spd.y += vel.y;
 
+	// Stop the jumping animation routine
+	if (spd.y >= 0)
+	{
+		isJumping = false;
+	}
+
 	// Prevent from gaining a ridiculous amount of downwards momentum
 	if (spd.y > 4)
 		spd.y = 4;
@@ -140,6 +165,7 @@ void Mario::update()
 		if (vel.y == 0)
 		{
 			spd.y = (fullRun) ? -5 : -5 - (fabsf(spd.x) / 4);
+			isJumping = true;
 			Mix_HaltChannel(1);
 			Mix_PlayChannel(1, game->jumpSound, 0);
 		}
@@ -196,7 +222,14 @@ void Mario::animate()
 	else if (vel.y == 0)
 	{
 		if (isSkidding)
+		{
 			curAnim = skidAnim;
+			if (!Mix_Playing(3))
+			{
+				Mix_PlayChannel(3, game->skidSound, false);
+				Mix_Volume(3, MIX_MAX_VOLUME / 2);
+			}
+		}
 		else
 		{
 			if (spd.x != 0)
@@ -214,13 +247,9 @@ void Mario::animate()
 			{
 				curAnim = idleAnim;
 				if (game->input->isPressed(SDL_SCANCODE_UP))
-				{
 					curFrame = 1;
-				}
 				else
-				{
 					curFrame = 0;
-				}
 			}
 		}
 	}
@@ -230,6 +259,6 @@ void Mario::animate()
 			curAnim = jumpAnim;
 		else
 			curAnim = runJumpAnim;
-		curFrame = (spd.y <= 0) ? 0 : 1;
+		curFrame = (isJumping) ? 0 : 1;
 	}
 }

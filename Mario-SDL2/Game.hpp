@@ -6,7 +6,6 @@
 #include "Mario.hpp"
 #include "Level.hpp"
 #include <SDL.h>
-#include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
 
@@ -34,12 +33,18 @@ class Game
 		SDL_Texture* foesTexture;
 		SDL_Texture* tilesTexture;
 		SDL_Texture* cloudsTexture;
+		SDL_Texture* fontTexture;
+		SDL_Texture* hudTextures;
+
 		Mix_Chunk* jumpSound;
-		TTF_Font* font;
+		Mix_Chunk* pmeterSound;
+		Mix_Chunk* skidSound;
+
 		Input* input;
 		Level* level;
-		int gameWidth = 400;
+		int gameWidth = 256;
 		int gameHeight = 224;
+		float shineTick = 0;
 };
 
 #endif

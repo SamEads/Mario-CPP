@@ -6,7 +6,7 @@ void initFunctions(Game *_game)
 	game = _game;
 }
 
-void drawTile(int x, int y, int tileX, int tileY)
+void drawTile(int x, int y, int tileX, int tileY, bool followCam)
 {
 	SDL_Rect srcRect;
 	SDL_Rect sizeRect;
@@ -14,35 +14,18 @@ void drawTile(int x, int y, int tileX, int tileY)
 	srcRect.y = tileY * 16;
 	sizeRect.w = srcRect.w = 16;
 	sizeRect.h = srcRect.h = 16;
-	sizeRect.x = x - floor(game->level->camPos.x);
+	sizeRect.x = x;
+	if (followCam)
+		sizeRect.x -= floor(game->level->camPos.x);
 	sizeRect.y = y;
+	if (6 == tileX && 0 == tileY)
+	{
+		int floatTick = floor(game->shineTick);
+		srcRect.x += floatTick * 16;
+	}
 	SDL_RenderCopyEx(game->renderer, game->tilesTexture, &srcRect, &sizeRect, 0, NULL, SDL_FLIP_NONE);
 }
 
-void drawText(int x, int y, std::string msg/*, align alignStyle*/)
-{
-	SDL_Surface* surf;
-	SDL_Texture* tex;
-	SDL_Rect rect;
-	surf = TTF_RenderText_Solid(game->font, msg.c_str(), { 255, 255, 255 });
-	tex = SDL_CreateTextureFromSurface(game->renderer, surf);
-	int extraWidth = 0;
-	/*if (alignStyle == right)
-	{
-		extraWidth -= surf->w;
-	}
-	else if (alignStyle == center)
-	{
-		extraWidth -= surf->w / 2;
-	}*/
-	rect.x = x + extraWidth;
-	rect.y = y;
-	rect.w = surf->w;
-	rect.h = surf->h;
-	SDL_FreeSurface(surf);
-	SDL_RenderCopy(game->renderer, tex, NULL, &rect);
-	SDL_DestroyTexture(tex);
-}
 void trueMouseCoordinates(SDL_Renderer* renderer, SDL_Window* window, int* logicalMouseX, int* logicalMouseY)
 {
 	int realMouseX, realMouseY;

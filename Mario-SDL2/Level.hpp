@@ -4,6 +4,7 @@
 #include "Functions.hpp"
 
 class Game;
+class HUD;
 class Mario;
 class Entity;
 
@@ -14,6 +15,10 @@ class Level
 		Level(Game* game);
 		void draw();
 		void update();
+		void saveLevel(const char* file);
+		void loadLevel(const char* file);
+		void fillBlankTiles();
+		HUD* hud;
 		Game* game;
 		Mario* mario;
 		Vector2 camPos;

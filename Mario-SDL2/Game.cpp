@@ -1,5 +1,6 @@
 #include "Entity.hpp"
 #include "Game.hpp"
+#include "Text.hpp"
 #include <iostream>
 #include <windows.h>
 #include <GL/gl.h>
@@ -39,10 +40,6 @@ Game::Game()
 				SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 				SDL_RenderSetLogicalSize(renderer, gameWidth, gameHeight);
 				isRunning = true;
-				std::cout << "Initializing font system" << std::endl;
-				int ttf = TTF_Init();
-				if (ttf == 0)
-					font = TTF_OpenFont("Assets/font.ttf", 8);
 				std::cout << "Entering main loop" << std::endl;
 
 				marioTexture = loadImage("Assets/Images/mario.png");
@@ -50,27 +47,15 @@ Game::Game()
 				foesTexture = loadImage("Assets/Images/foes.png");
 				tilesTexture = loadImage("Assets/Images/tiles.png");
 				cloudsTexture = loadImage("Assets/Images/clouds_bg.png");
+				fontTexture = loadImage("Assets/Images/font.png");
+				hudTextures = loadImage("Assets/Images/hud.png");
+
+				jumpSound = Mix_LoadWAV("Assets/Sounds/jump.wav");
+				pmeterSound = Mix_LoadWAV("Assets/Sounds/pmeter.wav");
+				skidSound = Mix_LoadWAV("Assets/Sounds/skid.wav");
 
 				input = new Input();
 				level = new Level(this);
-
-				jumpSound = Mix_LoadWAV("Assets/Sounds/jump.wav");
-
-				/*Music_Emu* emu = 0;
-				SDL_AudioSpec spec;
-				gme_open_file("Assets/Sounds/ow.spc", &emu, 48000);
-				gme_start_track(emu, 0);
-				short buf[1024];
-				if (!gme_play(emu, 1024, buf))
-					std::cout << "GME PLAYING" << std::endl;
-				spec.freq = 48000;
-				spec.format = AUDIO_S16;
-				spec.channels = 2;
-				spec.samples = 512;
-				spec.callback = gme_feedaudio;
-				spec.userdata = NULL;
-				SDL_OpenAudio(&spec, 0);
-				*/
 
 				while (isRunning)
 				{
@@ -91,13 +76,12 @@ Game::Game()
 	SDL_DestroyTexture(luigiTexture);
 	SDL_DestroyTexture(foesTexture);
 	SDL_DestroyTexture(tilesTexture);
-
-	TTF_CloseFont(font);
+	SDL_DestroyTexture(fontTexture);
+	SDL_DestroyTexture(hudTextures);
 
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 
-	TTF_Quit();
 	SDL_Quit();
 	IMG_Quit();
 }
@@ -150,15 +134,16 @@ void Game::update()
 {
 	level->update();
 	input->update();
+	if (shineTick >= 1)
+		shineTick += 0.125f;
+	else
+		shineTick += 0.025f;
+	if (shineTick >= 4)
+		shineTick -= 4;
 }
 
 void Game::draw()
 {
-	/*
-	glClearColor(1.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	SDL_GL_SwapWindow(window);
-	*/
 	// Set up draw
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);

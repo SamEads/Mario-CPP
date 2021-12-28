@@ -20,17 +20,13 @@ void Entity::collide()
 	}
 	int texWidth = 16;
 	int texHeight = 32;
-	int curLWidthMaxFocus = ceil((position.x + texWidth + texHeight) / texWidth);
-	int curLWidthMinFocus = floor((position.x - texHeight) / texWidth);
-	Rect hitbox;
-	hitbox.x = position.x + leftClip;
-	hitbox.y = position.y + topClip;
-	hitbox.w = texWidth - leftClip - rightClip;
-	hitbox.h = texHeight - topClip;
+	int curLWidthMaxFocus = (int) ceil((position.x + texWidth + texHeight) / texWidth);
+	int curLWidthMinFocus = (int) floor((position.x - texHeight) / texWidth);
+	Rect hitbox = getHitbox();
 
-	for (int i = hitbox.x - 4 - fabsf(spd.x); i <= hitbox.x + 1 + hitbox.w + fabsf(spd.x); i++)
+	for (int i = (int) (hitbox.x - 4 - fabsf(spd.x)); i <= hitbox.x + 1 + hitbox.w + fabsf(spd.x); i++)
 	{
-		for (int j = hitbox.y - 1 - fabsf(spd.y); j <= hitbox.y + 1 + hitbox.h + fabsf(spd.y); j++)
+		for (int j = (int) (hitbox.y - 1 - fabsf(spd.y)); j <= hitbox.y + 1 + hitbox.h + fabsf(spd.y); j++)
 		{
 			int xCheck = (int)floor(i / 16);
 			int yCheck = (int)floor(j / 16);
@@ -47,8 +43,8 @@ void Entity::collide()
 				continue;
 
 			Rect tileRealPosition;
-			tileRealPosition.x = xCheck * 16;
-			tileRealPosition.y = yCheck * 16;
+			tileRealPosition.x = (int) (xCheck * 16);
+			tileRealPosition.y = (int) (yCheck * 16);
 			tileRealPosition.w = 16;
 			tileRealPosition.h = 16;
 
@@ -115,14 +111,14 @@ Rect Entity::getHitbox()
 	Rect hitbox;
 	hitbox.x = position.x + leftClip;
 	hitbox.y = position.y + topClip;
-	hitbox.w = texWidth - leftClip - rightClip;
-	hitbox.h = texHeight - topClip;
+	hitbox.w = (int) (texWidth - leftClip - rightClip);
+	hitbox.h = (int) (texHeight - topClip);
 	return hitbox;
 }
 
 void Entity::draw(SDL_Texture* texture, Game* game, float x, float y)
 {
-	int frameVectorSize = curAnim.frames.size();
+	int frameVectorSize = (int) curAnim.frames.size();
 	if (frameVectorSize <= 1)
 	{
 		curFrame = 0;
@@ -143,13 +139,13 @@ void Entity::draw(SDL_Texture* texture, Game* game, float x, float y)
 		curFrame = 0;
 
 	// Get the sprite to display in the proper vector position
-	imgX = curAnim.frames[floor(curFrame)];
+	imgX = curAnim.frames[(int) floor(curFrame)];
 
 	SDL_Rect srcRect;
 	SDL_Rect sizeRect;
 	SDL_Point centerPoint;
-	srcRect.x = floor(imgX) * 32;
-	srcRect.y = floor(imgY) * 32;
+	srcRect.x = (int) floor(imgX) * 32;
+	srcRect.y = (int) floor(imgY) * 32;
 	sizeRect.w = srcRect.w = 32;
 	sizeRect.h = srcRect.h = 32;
 	sizeRect.x = (position.x) - game->level->camPos.x - 8;

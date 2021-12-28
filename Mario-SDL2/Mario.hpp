@@ -22,6 +22,8 @@ class Mario : public Entity
 		// Variables
 		bool isSkidding = false;
 		bool isCrouching = false;
+		bool isJumping = false;
+		int runTime = 0;
 		int pmeterLevel = 112;
 		int pmeterMax = 112;
 		Powerup powerup = SMALL;

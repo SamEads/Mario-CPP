@@ -1,3 +1,6 @@
+#ifndef ENEMY_HPP
+#define ENEMY_HPP
+
 #include "Entity.hpp"
 
 class Mario;
@@ -11,3 +14,5 @@ class Enemy : public Entity
 		virtual void die();
 		void update();
 };
+
+#endif
