@@ -12,12 +12,12 @@ void Entity::updatePosition()
 * */
 void Entity::collide()
 {
-	if (level == nullptr || game == nullptr)
+	if (game == nullptr)
 	{
-		std::cout << "FATAL ERROR!!! ENTITY DOES NOT HAVE LEVEL AND OR GAME REFERENCE" << std::endl;
+		std::cout << "ENTITY DOES NOT HAVE LEVEL AND OR GAME REFERENCE" << std::endl;
 		return;
 	}
-	int texWidth = 16;
+	int texWidth = 32;
 	int texHeight = 32;
 	int curLWidthMaxFocus = (int) ceil((position.x + texWidth + texHeight) / texWidth);
 	int curLWidthMinFocus = (int) floor((position.x - texHeight) / texWidth);
@@ -36,13 +36,13 @@ void Entity::collide()
 			int xCheck = (int)floor(i / 16);
 			int yCheck = (int)floor(j / 16);
 
-			if ((xCheck >= level->levelWidth)
-				|| (yCheck >= level->levelHeight)
+			if ((xCheck >= game->level->levelWidth)
+				|| (yCheck >= game->level->levelHeight)
 				|| (xCheck < 0)
 				|| (yCheck < 0))
 				continue;
 
-			Tile* tile = level->tiles[xCheck][yCheck];
+			Tile* tile = game->level->tiles[xCheck][yCheck];
 
 			if (tile->cellX == -1 || tile->cellY == -1)
 				continue;
@@ -86,8 +86,8 @@ void Entity::collide()
 			if (spd.x <= 0 && !leftCollide && !rightCollide)
 			{
 				if ((hitbox.getLeft() <= tileRealPosition.getRight())					// If the player's left side is going into the solid's right side
-				&& (hitbox.getLeft() > tileRealPosition.getRight() - fabsf(spd.x) - 2)	// If the player player is not too far into the tile (speed & extra leeway)
-				&& (hitbox.getBottom() > tileRealPosition.getTop() + fabsf(spd.y) + 1)	// If the player is above the tile enough for it not to be the tile they're standing on
+				&& (hitbox.getLeft() > tileRealPosition.getRight() - 2 - fabsf(spd.x))	// If the player player is not too far into the tile (speed & extra leeway)
+				&& (hitbox.getBottom() > tileRealPosition.getTop() + 1 + fabsf(spd.y))	// If the player is above the tile enough for it not to be the tile they're standing on
 				&& (hitbox.getTop() < tileRealPosition.getBottom() + spd.y))			// If the player's top is low enough to not refer to the tile above the player
 				{
 					position.x = tileRealPosition.getRight() - leftClip;
@@ -101,7 +101,7 @@ void Entity::collide()
 			{
 				if ((hitbox.getRight() >= tileRealPosition.getLeft())
 				&& (hitbox.getRight() < tileRealPosition.getLeft() + 2 + fabsf(spd.x))
-				&& (hitbox.getBottom() > tileRealPosition.getTop() + fabsf(spd.y) + 1)
+				&& (hitbox.getBottom() > tileRealPosition.getTop() + 1 + fabsf(spd.y))
 				&& (hitbox.getTop() < tileRealPosition.getBottom() + spd.y))
 				{
 					position.x = tileRealPosition.getLeft() - texWidth + rightClip;
@@ -116,8 +116,6 @@ void Entity::collide()
 
 Rect Entity::getHitbox()
 {
-	int texWidth = 16;
-	int texHeight = 32;
 	Rect hitbox;
 	hitbox.x = position.x + leftClip;
 	hitbox.y = position.y + topClip;
@@ -149,19 +147,28 @@ void Entity::draw(SDL_Texture* texture, Game* game, float x, float y)
 		curFrame = 0;
 
 	// Get the sprite to display in the proper vector position
-	imgX = curAnim.frames[(int) floor(curFrame)];
+	int curAnimFrameSize = curAnim.frames.size();
+	if ((int)floor(curFrame) < curAnimFrameSize)
+		imgX = curAnim.frames[(int)floor(curFrame)];
+	else
+		imgX = 0;
 
 	SDL_Rect srcRect;
 	SDL_Rect sizeRect;
 	SDL_Point centerPoint;
-	srcRect.x = (int) floor(imgX) * 32;
-	srcRect.y = (int) floor(imgY) * 32;
-	sizeRect.w = srcRect.w = 32;
-	sizeRect.h = srcRect.h = 32;
-	sizeRect.x = (position.x) - game->level->camPos.x - 8;
+	srcRect.x = (int) floor(imgX) * texWidth;
+	srcRect.y = (int) floor(imgY) * texHeight;
+	sizeRect.w = srcRect.w = texWidth;
+	sizeRect.h = srcRect.h = texHeight;
+	sizeRect.x = (position.x) - game->level->camPos.x;
 	sizeRect.y = (position.y) + 1;
-	centerPoint.x = 16;
-	centerPoint.y = 16;
+	centerPoint.x = texWidth / 2;
+	centerPoint.y = texHeight / 2;
 	SDL_RenderCopyEx(game->renderer, texture, &srcRect, &sizeRect, 0, NULL, flipSpr);
-
+	SDL_Rect hitboxRect = getHitbox().SDL_Rect();
+	hitboxRect.x -= game->level->camPos.x;
+	if (game->level->editorMode)
+	{
+		SDL_RenderDrawRect(game->renderer, &hitboxRect);
+	}
 }

@@ -1,16 +1,20 @@
 #ifndef GOOMBA_HPP
 #define GOOMBA_HPP
 
-#include "Entity.hpp"
+#include "Enemy.hpp"
 
-class Mario;
+class Player;
 
-class Goomba : public Entity
+class Goomba : public Enemy
 {
 	private:
 	public:
-		void hurtPlayer(Mario* mario);
-		void hurtEnemy(Mario* mario);
+		Goomba(Level* _level);
+		void update();
+		void hurtPlayer(Player* player);
+		void hurtEnemy(Player* player);
+		int topClip = 24;
+		int stompTimer = 0;
 };
 
 #endif

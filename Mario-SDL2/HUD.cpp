@@ -9,6 +9,22 @@ HUD::HUD(Level *_level)
 	level = _level;
 }
 
+std::string addLeadingZeroes(std::string str, int zeroes)
+{
+	int zeroesLength = str.length();
+	if (zeroesLength < zeroes)
+	{
+		std::string strZeroes;
+		zeroesLength = zeroes - zeroesLength;
+		for (int i = 0; i < zeroesLength; i++)
+		{
+			strZeroes += "0";
+		}
+		str = strZeroes + str;
+	}
+	return str;
+}
+
 void HUD::draw()
 {
 	// HUD element cut-out
@@ -24,8 +40,8 @@ void HUD::draw()
 	destRect.w = sourceRect.w;
 	destRect.h = sourceRect.h;
 	// P-meter bar
-	float pmeterMax = level->mario->pmeterMax;
-	float pmeterLevel = pmeterMax - level->mario->pmeterLevel;
+	float pmeterMax = level->player->pmeterMax;
+	float pmeterLevel = pmeterMax - level->player->pmeterLevel;
 	float pmeterRatio = (pmeterLevel / pmeterMax) * 6;
 	// Render the arrows
 	for (int i = 0; i < 6; i++)
@@ -47,4 +63,30 @@ void HUD::draw()
 		pFlash = 0;
 	destRect.w = sourceRect.w;
 	SDL_RenderCopy(level->game->renderer, level->game->hudTextures, &sourceRect, &destRect);
+	Text text;
+	text.alignment = left;
+	text.text = (level->player->character == MARIO) ? "MARIO" : "LUIGI";
+	text.draw(level->game, 24, 16);
+	text.text = addLeadingZeroes(std::to_string(level->game->score), 6);
+	text.draw(level->game, 24, 24);
+	text.text = "x"+addLeadingZeroes(std::to_string(level->game->coins), 2);
+	text.draw(level->game, 96, 24);
+	text.text = "WORLD";
+	text.draw(level->game, 144, 16);
+	text.text = "!-!";
+	text.draw(level->game, 152, 24);
+	text.alignment = right;
+	text.text = "TIME";
+	text.draw(level->game, level->game->gameWidth - 24, 16);
+	text.text = addLeadingZeroes(std::to_string(level->time), 3);
+	text.draw(level->game, level->game->gameWidth - 24, 24);
+	SDL_Rect coinSrcRect, coinDstRect;
+	float shineTick = floor(level->game->shineTick) * 5;
+	coinSrcRect.x = 44 + shineTick;
+	coinSrcRect.y = 0;
+	coinDstRect.w = coinSrcRect.w = 5;
+	coinDstRect.h = coinSrcRect.h = 8;
+	coinDstRect.x = 90;
+	coinDstRect.y = 24;
+	SDL_RenderCopy(level->game->renderer, level->game->hudTextures, &coinSrcRect, &coinDstRect);
 }

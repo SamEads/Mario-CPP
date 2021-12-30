@@ -2,11 +2,12 @@
 #include "Core.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
-#include "Mario.hpp"
+#include "Player.hpp"
 #include <algorithm>
 #include "Enemy.hpp"
 #include "HUD.hpp"
 #include <fstream>
+#include "Goomba.hpp"
 #include "Text.hpp"
 
 Level::Level(Game* _game)
@@ -14,17 +15,21 @@ Level::Level(Game* _game)
 	// Assign game
 	game = _game;
 	// Create player
-	mario = new Mario(this);
-	mario->position.x = 32;
-	mario->position.y = 160;
-	entities.push_back(mario);
+	player = new Player(this);
+	player->position.x = 32;
+	player->position.y = 160;
+	entities.push_back(player);
 	// Assign camera position
 	camPos.x = 0;
 	camPos.y = 0;
-	Enemy *throwaway = new Enemy(this);
-	throwaway->position.x = 160;
-	throwaway->position.y = 160;
-	entities.push_back(throwaway);
+	entities.reserve(5000);
+	for (int i = 0; i < 2; i++)
+	{
+		Goomba *throwaway = new Goomba(this);
+		throwaway->position.x = 128+(i*24);
+		throwaway->position.y = 160;
+		entities.push_back(throwaway);
+	}
 	// Load level
 	std::ifstream f("Assets/Levels/level.sav");
 	if (f.good())
@@ -44,6 +49,7 @@ Level::Level(Game* _game)
 	}
 	// Create HUD
 	hud = new HUD(this);
+	sortEntityDepth();
 }
 
 void Level::fillBlankTiles()
@@ -176,6 +182,7 @@ void Level::loadLevel(const char* fileName)
 
 void Level::update()
 {
+	int entityCountStart = entities.size();
 	#if DEBUG
 	if (game->input->wasJustPressed(SDL_SCANCODE_S))
 	{
@@ -231,18 +238,39 @@ void Level::update()
 			entity->update();
 	}
 	int screenMiddle = (camPos.x + game->gameWidth / 2) - 8;
-	if (mario->position.x > screenMiddle + 16)
+	if (player->position.x > screenMiddle + 16)
 	{
-		if (mario->spd.x > 0)
-			camPos.x += mario->spd.x;
+		if (player->spd.x > 0)
+			camPos.x += player->spd.x;
 	}
-	else if (mario->position.x < screenMiddle - 16)
+	else if (player->position.x < screenMiddle - 16)
 	{
-		if (mario->spd.x < 0)
-			camPos.x += mario->spd.x;
+		if (player->spd.x < 0)
+			camPos.x += player->spd.x;
 	}
-	camPos.y = mario->position.y - game->gameHeight / 2;
+	camPos.y = player->position.y - game->gameHeight / 2;
 	camPos.x = SDL_clamp(camPos.x, 0, (levelWidth * 16) - game->gameWidth);
+	timeTick++;
+	if (timeTick >= 40)
+	{
+		timeTick = 0;
+		if (time > 0)
+			time --;
+	}
+	// DEPTH SORTING
+	if (entityCountStart != entities.size())
+	{
+		sortEntityDepth();
+	}
+}
+
+void Level::sortEntityDepth()
+{
+	std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b)
+	{
+		return a->depth > b->depth;
+	});
+	std::cout << "Sorting entities" << std::endl;
 }
 
 Vector2 tilePositionOffset;
@@ -310,7 +338,7 @@ void Level::draw()
 	// Cut-out of the texture
 	SDL_Rect cloudSourceRect;
 	SDL_Rect cloudSizeRect;
-	cloudSourceRect.x = camPos.x / 2;
+	cloudSourceRect.x = ceil(camPos.x / 2);
 	cloudSourceRect.y = 0;
 	cloudSourceRect.w = game->gameWidth;
 	cloudSourceRect.h = game->gameHeight;
@@ -366,33 +394,4 @@ void Level::draw()
 
 	// Draw heads up display
 	hud->draw();
-
-	Text text;
-	text.alignment = left;
-	text.text = (!mario->luigi) ? "MARIO" : "LUIGI";
-	text.draw(game, 24, 16);
-	text.text = "000000";
-	text.draw(game, 24, 24);
-	text.text = "x00";
-	text.draw(game, 96, 24);
-	/*text.text = "x00";
-	text.draw(game, 32, 24);*/
-	text.text = "WORLD";
-	text.draw(game, 144, 16);
-	text.text = "!-!";
-	text.draw(game, 152, 24);
-	text.alignment = right;
-	text.text = "TIME";
-	text.draw(game, game->gameWidth - 24, 16);
-	text.text = "000";
-	text.draw(game, game->gameWidth - 24, 24);
-	SDL_Rect coinSrcRect, coinDstRect;
-	auto shineTick = game->shineTick >= 3 ? 5 : (floor(game->shineTick) * 5);
-	coinSrcRect.x = 44 + shineTick;
-	coinSrcRect.y = 0;
-	coinDstRect.w = coinSrcRect.w = 5;
-	coinDstRect.h = coinSrcRect.h = 8;
-	coinDstRect.x = 90;
-	coinDstRect.y = 24;
-	SDL_RenderCopy(game->renderer, game->hudTextures, &coinSrcRect, &coinDstRect);
 }

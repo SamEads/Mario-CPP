@@ -1,13 +1,14 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include "Input.hpp"
+#include "InputManager.hpp"
 #include "Core.hpp"
-#include "Mario.hpp"
+#include "Player.hpp"
 #include "Level.hpp"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
+#include <fmod.hpp>
 
 class Camera;
 
@@ -33,13 +34,10 @@ class Game
 		SDL_Texture* foesTexture;
 		SDL_Texture* tilesTexture;
 		SDL_Texture* cloudsTexture;
+		SDL_Texture* hillsTexture;
 		SDL_Texture* fontTexture;
 		SDL_Texture* hudTextures;
-
-		Mix_Chunk* jumpSound;
-		Mix_Chunk* pmeterSound;
-		Mix_Chunk* skidSound;
-		Mix_Chunk* bumpSound;
+		FMOD::System* fmodSystem;
 
 		Input* input;
 		Level* level;
@@ -47,6 +45,9 @@ class Game
 		const int gameHeight = 224;
 		float shineTick = 0;
 		float tempo = 1;
+
+		int coins = 6;
+		int score = 100;
 };
 
 #endif

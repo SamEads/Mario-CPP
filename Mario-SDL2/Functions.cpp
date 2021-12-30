@@ -1,6 +1,7 @@
 #include "Core.hpp"
 #include "Game.hpp"
 
+Game *game = NULL;
 void initFunctions(Game *_game)
 {
 	game = _game;

@@ -6,10 +6,11 @@
 #include <string>
 
 #define DEBUG true;
+#define USEFMOD true;
 
 class Game;
 
-static Game* game;
+extern Game* game;
 
 void drawTile(int x, int y, int tileX, int tileY, bool followCam = true);
 void initFunctions(Game* game);

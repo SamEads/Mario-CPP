@@ -3,16 +3,17 @@
 
 #include "Entity.hpp"
 
-class Mario;
+class Player;
 
 class Enemy : public Entity
 {
 	public:
+		bool alive = true;
 		Enemy(Level* _level);
-		virtual void hurtPlayer(Mario* mario);
-		virtual void hurtEnemy(Mario* mario);
+		virtual void hurtPlayer(Player* player);
+		virtual void hurtEnemy(Player* player);
 		virtual void die();
-		void update();
+		virtual void update();
 };
 
 #endif

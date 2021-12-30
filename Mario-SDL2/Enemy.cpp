@@ -3,27 +3,27 @@
 
 Enemy::Enemy(Level* _level)
 {
-	Entity::level = _level;
-	Entity::game = Entity::level->game;
+	// Entity::level = _level;
+	// Entity::game = Entity::level->game;
 	texture = game->foesTexture;
 }
 
-void Enemy::hurtEnemy(Mario* mario)
+void Enemy::hurtEnemy(Player* player)
 {
-	mario->spd.y = -3;
-	mario->isJumping = false;
+	player->spd.y = -3;
+	player->isJumping = false;
 	die();
 }
 
-void Enemy::hurtPlayer(Mario* mario)
+void Enemy::hurtPlayer(Player* player)
 {
 	// TODO: implement
 }
 
 void Enemy::die()
 {
-	std::vector<Entity*>::iterator iterator = find(level->entities.begin(), level->entities.end(), this);
-	level->entities.erase(iterator);
+	std::vector<Entity*>::iterator iterator = find(game->level->entities.begin(), game->level->entities.end(), this);
+	game->level->entities.erase(iterator);
 }
 
 void Enemy::update()
@@ -35,6 +35,24 @@ void Enemy::update()
 	spd.y += vel.y;
 	if (spd.y > 4)
 		spd.y = 4;
+	for (Entity* entity : game->level->entities)
+	{
+		Enemy* enemy = dynamic_cast<Enemy*> (entity);
+		if (entity == enemy)
+		{
+			if ((spd.x > 0 && enemy->spd.x < 0)
+			|| (spd.x < 0 && enemy->spd.x > 0))
+			{
+				auto myHitbox = getHitbox();
+				auto partnerHitbox = enemy->getHitbox();
+				if (getHitbox().intersects(enemy->getHitbox()))
+				{
+					spd.x = -spd.x;
+					enemy->spd.x = -enemy->spd.x;
+				}
+			}
+		}
+	}
 	updatePosition();
 	collide();
 	if (spd.x == 0)

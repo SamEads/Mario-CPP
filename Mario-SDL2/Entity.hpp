@@ -4,11 +4,12 @@
 #include "Core.hpp"
 #include <iostream>
 #include <SDL.h>
+#include "Sprite.hpp"
 
 class Level;
 class Game;
 
-class Entity
+class Entity : public Sprite
 {
 	protected:
 		void updatePosition();
@@ -27,8 +28,8 @@ class Entity
 		Vector2 position;
 		Vector2 spd;
 		Vector2 vel;
-		Level* level;
-		Game* game;
+		// Level* level;
+		// Game* game;
 		SDL_Texture* texture;
 		bool bumpedHead = false;
 
@@ -38,8 +39,10 @@ class Entity
 
 		// Hitbox
 		int topClip = 18;
-		int leftClip = 3;
-		int rightClip = 3;
+		int leftClip = 11;
+		int rightClip = 11;
+
+		int depth = 0;
 };
 
 #endif // !ENTITY_HPP

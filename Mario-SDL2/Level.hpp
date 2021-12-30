@@ -5,22 +5,25 @@
 
 class Game;
 class HUD;
-class Mario;
+class Player;
 class Entity;
 
 class Level
 {
 	private:
 	public:
+		int time = 400;
+		int timeTick = 0;
 		Level(Game* game);
 		void draw();
 		void update();
 		void saveLevel(const char* file);
 		void loadLevel(const char* file);
+		void sortEntityDepth();
 		void fillBlankTiles();
 		HUD* hud;
 		Game* game;
-		Mario* mario;
+		Player* player;
 		Vector2 camPos;
 		std::vector<Entity*> entities;
 		std::vector<std::vector<Tile*>> tiles;
