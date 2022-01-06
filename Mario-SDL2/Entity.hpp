@@ -8,6 +8,7 @@
 
 class Level;
 class Game;
+class Texture;
 
 class Entity : public Sprite
 {
@@ -20,7 +21,7 @@ class Entity : public Sprite
 			std::cout << "DEFAULT ENTITY ROUTINE" << std::endl;
 		};
 		virtual void collide();
-		virtual void draw(SDL_Texture* texture, Game* game, float x, float y);
+		virtual void draw();
 		Rect getHitbox();
 		SDL_RendererFlip flipSpr = SDL_FLIP_NONE;
 		float imgX = 0;
@@ -30,7 +31,7 @@ class Entity : public Sprite
 		Vector2 vel;
 		// Level* level;
 		// Game* game;
-		SDL_Texture* texture;
+		Texture* texture;
 		bool bumpedHead = false;
 
 		// Animations

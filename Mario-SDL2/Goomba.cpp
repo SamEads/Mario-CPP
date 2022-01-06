@@ -3,7 +3,7 @@
 #include "Player.hpp"
 #include "Level.hpp"
 #include "Game.hpp"
-#include "SoundManager.hpp"
+#include "AssetManager.hpp"
 
 Goomba::Goomba(Level* _level) : Enemy(_level)
 {

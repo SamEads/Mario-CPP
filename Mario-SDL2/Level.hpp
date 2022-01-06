@@ -30,7 +30,7 @@ class Level
 		int levelWidth = 128;
 		int levelHeight = 14;
 		// Editing variables
-		bool editorMode = false;
+		bool editorMode = true;
 		bool inBlockMenu = false;
 		int selectedCellX = 0;
 		int selectedCellY = 0;

@@ -9,6 +9,9 @@
 #include <fstream>
 #include "Goomba.hpp"
 #include "Text.hpp"
+#include "AssetManager.hpp"
+
+Vector2 mousePosition;
 
 Level::Level(Game* _game)
 {
@@ -32,7 +35,8 @@ Level::Level(Game* _game)
 	}
 	// Load level
 	std::ifstream f("Assets/Levels/level.sav");
-	if (f.good())
+	levelWidth = 1024;
+	if (1 == 2)//if (f.good())
 	{
 		loadLevel("Assets/Levels/level.sav");
 	}
@@ -180,10 +184,17 @@ void Level::loadLevel(const char* fileName)
 	file.close();
 }
 
+float cameraOffset = 0;
+int camXDir = 0;
+bool camAdjusting = false;
 void Level::update()
 {
+	int mpX, mpY;
+	trueMouseCoordinates(game->renderer, game->window, &mpX, &mpY);
+	mousePosition.x = mpX;
+	mousePosition.y = mpY;
 	int entityCountStart = entities.size();
-	#if DEBUG
+#if DEBUG
 	if (game->input->wasJustPressed(SDL_SCANCODE_S))
 	{
 		saveLevel("Assets/Levels/level.sav");
@@ -199,64 +210,111 @@ void Level::update()
 	if (game->input->wasJustPressed(SDL_SCANCODE_SPACE))
 	{
 		editorMode = !editorMode;
+		if (editorMode)
+		{
+			loadLevel("Assets/Levels/level.sav");
+		}
 	}
+#endif
 	if (inBlockMenu)
 		return;
-	else if (game->input->isPressed(0) && editorMode)
+	else if (editorMode)
 	{
-		int x, y;
-		trueMouseCoordinates(game->renderer, game->window, &x, &y);
-		x = floor(((x + camPos.x) / 16) * 16);
-		y = floor((y / 16) * 16);
-		if (selectedCellY / 16 < arrangedTiles.size())
+		if (game->input->isPressed(0))
 		{
-			if (selectedCellX / 16 < arrangedTiles[selectedCellY / 16].size())
+			int x, y;
+			trueMouseCoordinates(game->renderer, game->window, &x, &y);
+			x = floor(((x + camPos.x) / 16) * 16);
+			y = floor((y / 16) * 16);
+			if (selectedCellY / 16 < arrangedTiles.size())
 			{
-				Tile *retrievedTile = &arrangedTiles[selectedCellY / 16][selectedCellX / 16];
-				if (retrievedTile->cellX != -1 || retrievedTile->cellY != -1)
+				if (selectedCellX / 16 < arrangedTiles[selectedCellY / 16].size())
 				{
-					tiles[x/16][y/16]->cellX = retrievedTile->cellX;
-					tiles[x/16][y/16]->cellY = retrievedTile->cellY;
+					Tile* retrievedTile = &arrangedTiles[selectedCellY / 16][selectedCellX / 16];
+					if (retrievedTile->cellX != -1 || retrievedTile->cellY != -1)
+					{
+						tiles[x / 16][y / 16]->cellX = retrievedTile->cellX;
+						tiles[x / 16][y / 16]->cellY = retrievedTile->cellY;
+					}
 				}
 			}
 		}
+		else if (game->input->isPressed(1))
+		{
+			int x, y;
+			trueMouseCoordinates(game->renderer, game->window, &x, &y);
+			x = floor(((x + camPos.x) / 16) * 16);
+			y = floor((y / 16) * 16);
+			tiles[x / 16][y / 16]->cellX = -1;
+			tiles[x / 16][y / 16]->cellY = -1;
+		}
 	}
-	else if (game->input->isPressed(1) && editorMode)
-	{
-		int x, y;
-		trueMouseCoordinates(game->renderer, game->window, &x, &y);
-		x = floor(((x + camPos.x) / 16) * 16);
-		y = floor((y / 16) * 16);
-		tiles[x / 16][y / 16]->cellX = -1;
-		tiles[x / 16][y / 16]->cellY = -1;
-	}
-	#endif
 
-	for (Entity* entity : entities)
+	if (!editorMode)
 	{
-		if (entity->position.x+32 > camPos.x && entity->position.x-32 < camPos.x + game->gameWidth)
-			entity->update();
+		for (Entity* entity : entities)
+		{
+			if (entity->position.x + 32 > camPos.x && entity->position.x - 32 < camPos.x + game->gameWidth)
+				entity->update();
+		}
+		if (cameraOffset < game->gameWidth / 2)
+		{
+			cameraOffset = game->gameWidth / 2;
+		}
+		int innerBuffer = 8;
+		int outerBuffer = 32;
+		if (player->getHitbox().getCenter().x > cameraOffset + outerBuffer)
+		{
+			camXDir = 1;
+		}
+		else if (player->getHitbox().getCenter().x < cameraOffset - outerBuffer)
+		{
+			camXDir = -1;
+		}
+		if (camXDir == 1)
+		{
+			if (cameraOffset < player->getHitbox().getCenter().x + innerBuffer)
+			{
+				cameraOffset += 2;
+				if (player->spd.x > 0)
+					cameraOffset += player->spd.x;
+				if (cameraOffset >= player->getHitbox().getCenter().x + innerBuffer)
+					cameraOffset = player->getHitbox().getCenter().x + innerBuffer;
+			}
+		}
+		else if (camXDir == -1)
+		{
+			if (cameraOffset > player->getHitbox().getCenter().x - innerBuffer)
+			{
+				cameraOffset -= 2;
+				if (player->spd.x < 0)
+					cameraOffset += player->spd.x;
+				if (cameraOffset <= player->getHitbox().getCenter().x - innerBuffer)
+					cameraOffset = player->getHitbox().getCenter().x - innerBuffer;
+			}
+		}
+		camPos.x = cameraOffset - (game->gameWidth / 2);
+		timeTick++;
+		if (timeTick >= 40)
+		{
+			timeTick = 0;
+			if (time > 0)
+				time--;
+		}
 	}
-	int screenMiddle = (camPos.x + game->gameWidth / 2) - 8;
-	if (player->position.x > screenMiddle + 16)
+	else
 	{
-		if (player->spd.x > 0)
-			camPos.x += player->spd.x;
-	}
-	else if (player->position.x < screenMiddle - 16)
-	{
-		if (player->spd.x < 0)
-			camPos.x += player->spd.x;
+		if (game->input->isPressed(SDL_SCANCODE_D))
+		{
+			camPos.x += 4;
+		}
+		else if (game->input->isPressed(SDL_SCANCODE_A))
+		{
+			camPos.x -= 4;
+		}
 	}
 	camPos.y = player->position.y - game->gameHeight / 2;
 	camPos.x = SDL_clamp(camPos.x, 0, (levelWidth * 16) - game->gameWidth);
-	timeTick++;
-	if (timeTick >= 40)
-	{
-		timeTick = 0;
-		if (time > 0)
-			time --;
-	}
 	// DEPTH SORTING
 	if (entityCountStart != entities.size())
 	{
@@ -276,15 +334,17 @@ void Level::sortEntityDepth()
 Vector2 tilePositionOffset;
 void Level::draw()
 {
+#if USEOPENGL
+	glTranslatef(ceil(camPos.x) * -1, 0 * -1, 0);
+#endif
 	tilePositionOffset.x = 16;
 	tilePositionOffset.y = 16;
-	#if DEBUG
-	int x, y;
-	trueMouseCoordinates(game->renderer, game->window, &x, &y);
-	int cellX = ceil((x / 16) * 16);
-	int cellY = ceil((y / 16) * 16);
+#if DEBUG
+	int cellX = ceil(((int) mousePosition.x / 16) * 16);
+	int cellY = ceil(((int) mousePosition.y / 16) * 16);
 	if (inBlockMenu && editorMode)
 	{
+		resetView();
 		if (game->input->wasJustPressed(0))
 		{
 			selectedCellX = cellX - tilePositionOffset.x;
@@ -296,22 +356,18 @@ void Level::draw()
 		{
 			blinkBlockTimer = 0;
 		}
-		/*
-		SDL_Rect fullSizeImg;
-		fullSizeImg.x = fullSizeImg.y = 0;
-		fullSizeImg.w = 240;
-		fullSizeImg.h = 144;
-		SDL_RenderCopy(game->renderer, game->tilesTexture, &fullSizeImg, &fullSizeImg);
-		*/
 		// TODO: flip
+		glColor4f(0.9, 1, 1, 1);
+
 		for (int _x = 0; _x < arrangedTiles.size(); _x++)
 		{
 			for (int _y = 0; _y < arrangedTiles[_x].size(); _y++)
 			{
 				drawTile((_y * 16) + tilePositionOffset.x, (_x * 16) + tilePositionOffset.y, arrangedTiles[_x][_y].cellX, arrangedTiles[_x][_y].cellY, false);
-				//SDL_RenderCopy(game->renderer, game->tilesTexture, &tileWRect, &tileWDestRect);
 			}
 		}
+
+		glRectf(30, 30, 60, 60);
 
 		SDL_Rect hoveredBlock;
 		SDL_Rect selectedBlock;
@@ -325,16 +381,22 @@ void Level::draw()
 		selectedBlock.h = hoveredBlock.h - (blinkedDist * 2);
 		// Draw overlay on selected block
 		SDL_SetRenderDrawColor(game->renderer, 70, 0, 200, 255);
-		SDL_RenderDrawRect(game->renderer, &selectedBlock);
+		glColor4f(70.0f / 255.0f, 0, 200.0f / 255.0f, 1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(selectedBlock.x, selectedBlock.y);
+		glVertex2f(selectedBlock.x + selectedBlock.w, selectedBlock.y);
+		glVertex2f(selectedBlock.x + selectedBlock.w, selectedBlock.y + selectedBlock.h);
+		glVertex2f(selectedBlock.x, selectedBlock.y + selectedBlock.h);
+		glEnd();
 		// Draw overlay on hovered block
-		SDL_SetRenderDrawColor(game->renderer, 70, 0, 255, 128);
-		SDL_RenderFillRect(game->renderer, &hoveredBlock);
+		glColor4f(70.0f / 255.0f, 0, 1.0f, 128.0f / 255.0f);
+		glRecti(hoveredBlock.x, hoveredBlock.y, hoveredBlock.x + hoveredBlock.w, hoveredBlock.y + hoveredBlock.h);
 		// Reset draw color
-		SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
+		glColor4f(1, 1, 1, 1);
 		return;
 	}
-	#endif
-
+#endif
 	// Cut-out of the texture
 	SDL_Rect cloudSourceRect;
 	SDL_Rect cloudSizeRect;
@@ -342,14 +404,14 @@ void Level::draw()
 	cloudSourceRect.y = 0;
 	cloudSourceRect.w = game->gameWidth;
 	cloudSourceRect.h = game->gameHeight;
-	cloudSizeRect.x = 0;
+	cloudSizeRect.x = ceil(camPos.x);
 	cloudSizeRect.y = 0;
 	cloudSizeRect.w = game->gameWidth;
 	cloudSizeRect.h = game->gameHeight;
 	// Render clouds
-	SDL_RenderCopy(game->renderer, game->cloudsTexture, &cloudSourceRect, &cloudSizeRect);
+	renderCopy(getTexture("clouds_bg"), &cloudSourceRect, &cloudSizeRect);
 	// Render tiles in region
-	int curLevelWFocus = ceil(camPos.x / 16) + game->gameWidth / 16;
+	int curLevelWFocus = ceil(camPos.x / 16) + (game->gameWidth + 16) / 16;
 	for (int x = floor(camPos.x / 16); x < std::min(curLevelWFocus, levelWidth); x++)
 	{
 		for (int y = 0; y < levelHeight; y++)
@@ -364,10 +426,9 @@ void Level::draw()
 	#if DEBUG
 	if (!inBlockMenu && editorMode)
 	{
-		SDL_SetTextureAlphaMod(game->tilesTexture, 128);
-		trueMouseCoordinates(game->renderer, game->window, &x, &y);
-		int floorX = floor((x + camPos.x) / 16);
-		int floorY = floor((y / 16) * 16) / 16;
+		glColor4f(1, 1, 1, 0.5f);
+		int floorX = floor((mousePosition.x + camPos.x) / 16);
+		int floorY = floor((mousePosition.y / 16) * 16) / 16;
 		int drawCellX, drawCellY;
 		if (selectedCellY / 16 < arrangedTiles.size())
 		{
@@ -382,16 +443,15 @@ void Level::draw()
 				}
 			}
 		}
-		SDL_SetTextureAlphaMod(game->tilesTexture, 255);
+		glColor4f(1, 1, 1, 1);
 	}
 	#endif
 
 	// Draw every entity
 	for (Entity* entity : entities)
 	{
-		entity->draw(entity->texture, game, entity->position.x, entity->position.y);
+		entity->draw();
 	}
 
-	// Draw heads up display
 	hud->draw();
 }

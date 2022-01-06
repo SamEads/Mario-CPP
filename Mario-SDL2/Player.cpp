@@ -2,15 +2,17 @@
 #include "Game.hpp"
 #include <iostream>
 #include "Player.hpp"
+#if !USEFMOD
 #include <SDL_mixer.h>
-#include "SoundManager.hpp"
+#endif
+#include "AssetManager.hpp"
 
 Player::Player(Level* _level)
 {
 	// Entity::level = _level;
 	depth = -1;
 	// game = Entity::level->game;
-	texture = game->marioTexture;
+	texture = getTexture("mario");
 	identifier = "M";
 }
 
@@ -41,8 +43,8 @@ void Player::update()
 		spd.y = 0;
 		int xMoveDir = game->input->isPressed(SDL_SCANCODE_RIGHT) - game->input->isPressed(SDL_SCANCODE_LEFT);
 		int yMoveDir = game->input->isPressed(SDL_SCANCODE_DOWN) - game->input->isPressed(SDL_SCANCODE_UP);
-		spd.x = xMoveDir * 4;
-		spd.y = yMoveDir * 4;
+		spd.x = xMoveDir * 8;
+		spd.y = yMoveDir * 8;
 		position += spd;
 		return;
 	}
@@ -143,8 +145,14 @@ void Player::update()
 		spd.y = 4;
 	spd += vel;
 
-	if ((position.x < 0 && spd.x < 0) || (position.x > (game->level->levelWidth*16)-16 && spd.x > 0))
+	if ((position.x+8 < 0 && spd.x < 0) || (position.x+8 > (game->level->levelWidth*16)-16 && spd.x > 0))
 		spd.x = 0;
+
+	if (spd.y > 0 && position.y >= game->level->levelHeight * 16 + 16)
+	{
+		spd.y = 0;
+		spd.x = 0;
+	}
 
 	updatePosition();
 	collide();
@@ -195,7 +203,7 @@ void Player::update()
 
 void Player::animate()
 {
-	texture = (character == LUIGI) ? game->luigiTexture : game->marioTexture;
+	texture = (character == LUIGI) ? getTexture("luigi") : getTexture("mario");
 	imgY = (int)powerup;
 	switch (powerup)
 	{

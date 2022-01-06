@@ -1,9 +1,13 @@
+#include "Core.hpp"
 #include "Game.hpp"
 #include <iostream>
 #include <string>
 #include "Text.hpp"
+#include "AssetManager.hpp"
 
-void Text::draw(Game *game, int x, int y)
+const std::string Text::textOrder = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ*!.-x";
+
+void Text::draw(int x, int y, std::string text, Alignment alignment)
 {
 	SDL_Rect srcRect;
 	SDL_Rect destRect;
@@ -13,6 +17,7 @@ void Text::draw(Game *game, int x, int y)
 	int j = text.length();
 	for (int i = 0; i < text.length(); i++)
 	{
+		int rand = std::rand() % (1000 - 0 + 1);
 		int position = textOrder.find(text[i]);
 		int _x;
 		if (alignment == right)
@@ -24,6 +29,6 @@ void Text::draw(Game *game, int x, int y)
 			_x = x + (i * 8);
 		srcRect.x = position * 8;
 		destRect.x = _x;
-		SDL_RenderCopy(game->renderer, game->fontTexture, &srcRect, &destRect);
+		renderCopy(getTexture("font"), &srcRect, &destRect);
 	}
 }

@@ -2,24 +2,15 @@
 #include "Game.hpp"
 #include "Text.hpp"
 #include <iostream>
-#include <windows.h>
-#include <GL/gl.h>
 #include <gme.h>
+#include "AssetManager.hpp"
+
 
 Level* level;
 Music_Emu* emu;
-SDL_Texture* buffer;
 
 #define FREQ 48000
 #define SAMPLES 2048
-
-SDL_Texture* Game::loadImage(std::string location)
-{
-	SDL_Surface* tempSurface = IMG_Load(location.c_str());
-	SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, tempSurface);
-	SDL_FreeSurface(tempSurface);
-	return tex;
-}
 
 void audioCallback(void* userData, Uint8* out, int count)
 {
@@ -30,44 +21,51 @@ void audioCallback(void* userData, Uint8* out, int count)
 
 Game::Game()
 {
+	std::srand(std::time(nullptr));
 	initFunctions(this);
 	std::cout << "Initializing" << std::endl;
 	init = SDL_Init(SDL_INIT_VIDEO);
 	if (init == 0)
 	{
+		#if !USEFMOD
 		if (Mix_OpenAudio(FREQ, AUDIO_S16SYS, 1, SAMPLES) >= 0)
 			std::cout << "Initialized audio system" << std::endl;
+		#endif
 		FMOD::System_Create(&fmodSystem);
 		fmodSystem->init(64, FMOD_INIT_NORMAL, 0);
 		std::cout << "Creating window" << std::endl;
 		window = SDL_CreateWindow("Super Mario Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gameWidth * 2, gameHeight * 2, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-		SDL_GLContext mainContext = SDL_GL_CreateContext(window);
 		SDL_SetWindowMinimumSize(window, gameWidth, gameHeight);
+
+		// OpenGL attributes
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+
+		SDL_GLContext mainContext = SDL_GL_CreateContext(window);
+
+		SDL_GL_SetSwapInterval(SDL_FALSE);
+
 		if (window)
 		{
+			bool rendererConfirmed = false;
+			#if !USEOPENGL
 			std::cout << "Creating renderer" << std::endl;
 			renderer = SDL_CreateRenderer(window, -1, 0);
 			buffer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, gameWidth, gameHeight);
 			if (renderer)
+				rendererConfirmed = true;
+			#else
+			rendererConfirmed = true;
+			#endif
+			if (rendererConfirmed)
 			{
+				#if !USEOPENGL
 				SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 				SDL_RenderSetLogicalSize(renderer, gameWidth, gameHeight);
-				//SDL_RenderSetScale(renderer, 1, 1);
 				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
+				#endif
 				isRunning = true;
 				std::cout << "Entering main loop" << std::endl;
-
-				marioTexture = loadImage("Assets/Images/mario.png");
-				luigiTexture = loadImage("Assets/Images/luigi.png");
-				foesTexture = loadImage("Assets/Images/foes.png");
-				tilesTexture = loadImage("Assets/Images/tiles.png");
-				cloudsTexture = loadImage("Assets/Images/clouds_bg.png");
-				hillsTexture = loadImage("Assets/Images/tiles.png");
-				fontTexture = loadImage("Assets/Images/font.png");
-				hudTextures = loadImage("Assets/Images/hud.png");
 
 				input = new Input();
 				level = new Level(this);
@@ -95,17 +93,12 @@ Game::Game()
 					}
 					if (input->wasJustPressed(SDL_SCANCODE_3))
 					{
-						//gme_open_file("Assets/Sounds/athletic.spc", &emu, FREQ);
-						//gme_start_track(emu, 0);
-					}
-					if (input->wasJustPressed(SDL_SCANCODE_3))
-					{
 						gme_open_file("Assets/Sounds/snow.spc", &emu, FREQ);
 						gme_start_track(emu, 0);
 					}
 					if (input->wasJustPressed(SDL_SCANCODE_4))
 					{
-						gme_open_file("Assets/Sounds/map.spc", &emu, FREQ);
+						gme_open_file("Assets/Sounds/ghz2.vgm", &emu, FREQ);
 						gme_start_track(emu, 0);
 					}
 					if (input->wasJustPressed(SDL_SCANCODE_5))
@@ -128,6 +121,10 @@ Game::Game()
 						tempo = 1;
 						gme_set_tempo(emu, tempo);
 					}
+					if (input->wasJustPressed(SDL_SCANCODE_T))
+					{
+						freeSounds();
+					}
 					handleEvents();
 					update();
 					draw();
@@ -143,12 +140,8 @@ Game::Game()
 
 	gme_delete(emu);
 	emu = 0;
-	SDL_DestroyTexture(marioTexture);
-	SDL_DestroyTexture(luigiTexture);
-	SDL_DestroyTexture(foesTexture);
-	SDL_DestroyTexture(tilesTexture);
-	SDL_DestroyTexture(fontTexture);
-	SDL_DestroyTexture(hudTextures);
+	freeTextures();
+	freeSounds();
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
@@ -214,7 +207,9 @@ void Game::update()
 
 void Game::draw()
 {
+#if !USEOPENGL
 	// Set up draw
+	SDL_SetRenderTarget(renderer, buffer);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
@@ -226,16 +221,38 @@ void Game::draw()
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(renderer, &rect);
 
-	SDL_SetRenderTarget(renderer, buffer);
-
 	// Prepare a white background, clip the background, and draw everything
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	SDL_RenderSetClipRect(renderer, &rect);
-	level->draw();
+#else
+	int w, h;
+	SDL_GL_GetDrawableSize(window, &w, &h);
+	float ratio = (float) h / game->gameHeight;
+	float dispWidth = game->gameWidth * ratio;
+	glViewport((w - dispWidth) / 2, 0, dispWidth, h);
+	
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
 
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, game->gameWidth, game->gameHeight, 0, -1, 1);
+
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#endif
+	level->draw();
+#if !USEOPENGL
 	SDL_SetRenderTarget(renderer, NULL);
 	SDL_RenderCopy(renderer, buffer, NULL, NULL);
 
 	// Draw to window
 	SDL_RenderPresent(renderer);
+#else
+	glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
+
+	SDL_GL_SwapWindow(window);
+#endif
 }

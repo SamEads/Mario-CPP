@@ -1,10 +1,9 @@
 #include "Game.hpp"
-#include "windows.h"
-#include "SDL_mixer.h"
+#include "Core.hpp"
+#include "AssetManager.hpp"
 
 int main(int argc, char *argv[])
 {
-	SetConsoleTitle(TEXT("Super Mario Game"));
 	new Game();
 	return 0;
 }

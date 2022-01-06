@@ -1,6 +1,7 @@
 #include "Entity.hpp"
 #include <iostream>
 #include "Game.hpp"
+#include "AssetManager.hpp"
 
 void Entity::updatePosition()
 {
@@ -50,8 +51,8 @@ void Entity::collide()
 			Rect tileRealPosition;
 			tileRealPosition.x = (int) (xCheck * 16);
 			tileRealPosition.y = (int) (yCheck * 16);
-			tileRealPosition.w = 16;
-			tileRealPosition.h = 16;
+			tileRealPosition.w = tile->width;
+			tileRealPosition.h = tile->height;
 
 			// Down
 			if (spd.y >= 0 && !downCollide && !upCollide)
@@ -124,7 +125,7 @@ Rect Entity::getHitbox()
 	return hitbox;
 }
 
-void Entity::draw(SDL_Texture* texture, Game* game, float x, float y)
+void Entity::draw()
 {
 	int frameVectorSize = (int) curAnim.frames.size();
 	if (frameVectorSize <= 1)
@@ -152,23 +153,20 @@ void Entity::draw(SDL_Texture* texture, Game* game, float x, float y)
 		imgX = curAnim.frames[(int)floor(curFrame)];
 	else
 		imgX = 0;
-
 	SDL_Rect srcRect;
 	SDL_Rect sizeRect;
 	SDL_Point centerPoint;
-	srcRect.x = (int) floor(imgX) * texWidth;
-	srcRect.y = (int) floor(imgY) * texHeight;
+	srcRect.x = (int)floor(imgX) * texWidth;
+	srcRect.y = (int)floor(imgY) * texHeight;
 	sizeRect.w = srcRect.w = texWidth;
 	sizeRect.h = srcRect.h = texHeight;
-	sizeRect.x = (position.x) - game->level->camPos.x;
+	sizeRect.x = ceil(position.x);
 	sizeRect.y = (position.y) + 1;
 	centerPoint.x = texWidth / 2;
 	centerPoint.y = texHeight / 2;
-	SDL_RenderCopyEx(game->renderer, texture, &srcRect, &sizeRect, 0, NULL, flipSpr);
-	SDL_Rect hitboxRect = getHitbox().SDL_Rect();
-	hitboxRect.x -= game->level->camPos.x;
-	if (game->level->editorMode)
-	{
-		SDL_RenderDrawRect(game->renderer, &hitboxRect);
-	}
+#if !USEOPENGL
+	SDL_RenderCopyEx(game->renderer, texture->sdlTexture, &srcRect, &sizeRect, 0, NULL, flipSpr);
+#else
+	renderCopy(texture, &srcRect, &sizeRect, flipSpr);
+#endif
 }

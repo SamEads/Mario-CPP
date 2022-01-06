@@ -1,11 +1,10 @@
 #include "Enemy.hpp"
 #include "Game.hpp"
+#include "AssetManager.hpp"
 
 Enemy::Enemy(Level* _level)
 {
-	// Entity::level = _level;
-	// Entity::game = Entity::level->game;
-	texture = game->foesTexture;
+	texture = getTexture("foes");
 }
 
 void Enemy::hurtEnemy(Player* player)

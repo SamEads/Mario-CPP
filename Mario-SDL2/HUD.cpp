@@ -3,10 +3,14 @@
 #include "Game.hpp"
 #include "SDL.h"
 #include "Text.hpp"
+#include "AssetManager.hpp"
+
+Texture* hudTexture;
 
 HUD::HUD(Level *_level)
 {
 	level = _level;
+	hudTexture = getTexture("hud");
 }
 
 std::string addLeadingZeroes(std::string str, int zeroes)
@@ -25,8 +29,18 @@ std::string addLeadingZeroes(std::string str, int zeroes)
 	return str;
 }
 
+int lastHUDScore = 0;
+float lerpScore = 0;
 void HUD::draw()
 {
+	// Reset view
+	resetView();
+	if (level->editorMode)
+	{
+		Text::draw(game->gameWidth - 8, 8, "LEVEL EDITOR MODE", right);
+		return;
+	}
+
 	// HUD element cut-out
 	SDL_Rect sourceRect;
 	sourceRect.x = 0;
@@ -36,7 +50,7 @@ void HUD::draw()
 	// HUD element position & stretch
 	SDL_Rect destRect;
 	destRect.x = 32;
-	destRect.y = level->game->gameHeight - sourceRect.h - 12;
+	destRect.y = game->gameHeight - sourceRect.h - 12;
 	destRect.w = sourceRect.w;
 	destRect.h = sourceRect.h;
 	// P-meter bar
@@ -47,7 +61,7 @@ void HUD::draw()
 	for (int i = 0; i < 6; i++)
 	{
 		sourceRect.x = (pmeterRatio <= i) ? 0 : 7;
-		SDL_RenderCopy(level->game->renderer, level->game->hudTextures, &sourceRect, &destRect);
+		renderCopy(hudTexture, &sourceRect, &destRect);
 		destRect.x += 8;
 	}
 	// Render the p-meter symbol
@@ -62,31 +76,26 @@ void HUD::draw()
 	else
 		pFlash = 0;
 	destRect.w = sourceRect.w;
-	SDL_RenderCopy(level->game->renderer, level->game->hudTextures, &sourceRect, &destRect);
-	Text text;
-	text.alignment = left;
-	text.text = (level->player->character == MARIO) ? "MARIO" : "LUIGI";
-	text.draw(level->game, 24, 16);
-	text.text = addLeadingZeroes(std::to_string(level->game->score), 6);
-	text.draw(level->game, 24, 24);
-	text.text = "x"+addLeadingZeroes(std::to_string(level->game->coins), 2);
-	text.draw(level->game, 96, 24);
-	text.text = "WORLD";
-	text.draw(level->game, 144, 16);
-	text.text = "!-!";
-	text.draw(level->game, 152, 24);
-	text.alignment = right;
-	text.text = "TIME";
-	text.draw(level->game, level->game->gameWidth - 24, 16);
-	text.text = addLeadingZeroes(std::to_string(level->time), 3);
-	text.draw(level->game, level->game->gameWidth - 24, 24);
+	renderCopy(hudTexture, &sourceRect, &destRect);
+	Text::draw(24, 16, (level->player->character == MARIO) ? "MARIO" : "LUIGI");
+	if (abs(game->score - lerpScore) > 0.5f)
+		lerpScore = lerp(lerpScore, game->score, 0.5f);
+	else
+		lerpScore = game->score;
+	Text::draw(24, 24, addLeadingZeroes(std::to_string((int) lerpScore), 6));
+	Text::draw(96, 24, "x" + addLeadingZeroes(std::to_string(game->coins), 2));
+	Text::draw(144, 16, "WORLD");
+	Text::draw(152, 24, "!-!");
+	Text::draw(game->gameWidth - 24, 16, "TIME", right);
+	Text::draw(game->gameWidth - 24, 24, addLeadingZeroes(std::to_string(level->time), 3), right);
 	SDL_Rect coinSrcRect, coinDstRect;
-	float shineTick = floor(level->game->shineTick) * 5;
+	float shineTick = floor(game->shineTick) * 5;
 	coinSrcRect.x = 44 + shineTick;
 	coinSrcRect.y = 0;
 	coinDstRect.w = coinSrcRect.w = 5;
 	coinDstRect.h = coinSrcRect.h = 8;
 	coinDstRect.x = 90;
 	coinDstRect.y = 24;
-	SDL_RenderCopy(level->game->renderer, level->game->hudTextures, &coinSrcRect, &coinDstRect);
+	renderCopy(hudTexture, &coinSrcRect, &coinDstRect);
+	lastHUDScore = game->score;
 }

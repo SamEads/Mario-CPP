@@ -3,12 +3,14 @@
 
 #include "InputManager.hpp"
 #include "Core.hpp"
-#include "Player.hpp"
 #include "Level.hpp"
+#include "Player.hpp"
+#include <fmod.hpp>
 #include <SDL.h>
 #include <SDL_image.h>
+#if !USEFMOD
 #include <SDL_mixer.h>
-#include <fmod.hpp>
+#endif
 
 class Camera;
 
@@ -29,18 +31,11 @@ class Game
 		// Variables
 		SDL_Renderer* renderer;
 		SDL_Window* window;
-		SDL_Texture* marioTexture;
-		SDL_Texture* luigiTexture;
-		SDL_Texture* foesTexture;
-		SDL_Texture* tilesTexture;
-		SDL_Texture* cloudsTexture;
-		SDL_Texture* hillsTexture;
-		SDL_Texture* fontTexture;
-		SDL_Texture* hudTextures;
 		FMOD::System* fmodSystem;
 
 		Input* input;
 		Level* level;
+		SDL_Texture* buffer;
 		const int gameWidth = 256;
 		const int gameHeight = 224;
 		float shineTick = 0;

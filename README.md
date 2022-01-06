@@ -6,11 +6,11 @@ Current game progress:
 To further develop my skills in C++, I've decided to take on a small remake of a popular video game IP, Super Mario. This is still entirely work-in-progress.
 # Compiling
 I use Visual Studio 2022 to compile this project. The following libraries are utilized:
-- SDL version 2.0.18
-- SDL_image 2.0.5
-- SDL_mixer 2.0
-- game-music-emu
-- FMOD
+- SDL version 2.0.18 (input)
+- SDL_image 2.0.5 (image loading)
+- game-music-emu (retro music)
+- FMOD (sound effects)
+- glew (shaders)
 # Current Core Features
 - Variable jumping Mario & Luigi
 - Hand-coded AABB collision

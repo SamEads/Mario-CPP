@@ -3,8 +3,6 @@
 
 #include <string>
 
-class Game;
-
 enum Alignment
 {
 	left,
@@ -14,12 +12,11 @@ enum Alignment
 class Text
 {
 	private:
-		const std::string textOrder = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ*!.-x";
+		static const std::string textOrder;
 	public:
-		Game* game;
 		std::string text;
 		Alignment alignment = left;
-		void draw(Game *game, int x, int y);
+		static void draw(int x, int y, std::string text, Alignment alignment = left);
 };
 
 #endif
