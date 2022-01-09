@@ -5,4 +5,4 @@ class Brick
 {
 };
 
-#endif
+#endif // !BRICK_HPP

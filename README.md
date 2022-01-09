@@ -1,17 +1,16 @@
 # Super Mario C++
-Current game progress:
-![Mario](smb.gif)
-(Example stage)
 # What Is This?
 To further develop my skills in C++, I've decided to take on a small remake of a popular video game IP, Super Mario. This is still entirely work-in-progress.
 # Compiling
 I use Visual Studio 2022 to compile this project. The following libraries are utilized:
+- FMOD (sound effects)
+- game-music-emu (retro music)
+- glew (shaders)
+- OpenGL (visuals)
 - SDL version 2.0.18 (input)
 - SDL_image 2.0.5 (image loading)
-- game-music-emu (retro music)
-- FMOD (sound effects)
-- glew (shaders)
 # Current Core Features
+- Custom OpenGL rendering
 - Variable jumping Mario & Luigi
 - Hand-coded AABB collision
 - SNES music emulation provided by the game-music-emu library

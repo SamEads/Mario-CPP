@@ -10,5 +10,7 @@ Mario-SDL2/SDL2_mixer/*
 Mario-SDL2/libgme/*
 Mario-SDL2/fmod/*
 Mario-SDL2/glew/*
+Mario-SDL2/glfw/*
+Mario-SDL2/glut/*
 Debug/*
 enc_temp_folder/*

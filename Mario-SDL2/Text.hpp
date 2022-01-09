@@ -5,8 +5,8 @@
 
 enum Alignment
 {
-	left,
-	right
+	LEFT,
+	RIGHT
 };
 
 class Text
@@ -15,8 +15,8 @@ class Text
 		static const std::string textOrder;
 	public:
 		std::string text;
-		Alignment alignment = left;
-		static void draw(int x, int y, std::string text, Alignment alignment = left);
+		Alignment alignment = LEFT;
+		static void draw(int x, int y, std::string text, Alignment alignment = LEFT);
 };
 
-#endif
+#endif // !TEXT_HPP

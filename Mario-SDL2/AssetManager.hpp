@@ -1,26 +1,21 @@
-#ifndef SOUNDMANAGER_HPP
-#define SOUNDMANAGER_HPP
+#ifndef ASSETMANAGER_HPP
+#define ASSETMANAGER_HPP
 
 #include <string>
 #include <map>
 #include <fmod.hpp>
 #include <GL/glew.h>
-#include <SDL_opengl.h>
+#include <GL/GL.h>
 
-struct Mix_Chunk;
-struct SDL_Texture;
 struct Sound
 {
 	FMOD::Sound* fmodSound;
 	FMOD::Channel* fmodChannel;
-	Mix_Chunk* mixChunk;
-	int mixChannel;
 };
 struct Texture
 {
-	SDL_Texture* sdlTexture;
 	GLuint id;
-	int width, height;
+	uint16_t width, height;
 };
 
 /* Play a sound or get a texture, if the sound/texture is not yet loaded then it will be loaded into their corresponding map */
@@ -37,4 +32,4 @@ extern std::map<std::string, Sound*> sounds;
 extern std::map<std::string, Texture*> textures;
 extern int soundChannels;
 
-#endif
+#endif //!ASSETMANAGER_HPP

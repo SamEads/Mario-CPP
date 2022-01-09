@@ -13,4 +13,4 @@ class HUD
 		int pFlash = 0;
 };
 
-#endif
+#endif // !HUD_HPP

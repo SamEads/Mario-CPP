@@ -6,11 +6,7 @@
 #include "Level.hpp"
 #include "Player.hpp"
 #include <fmod.hpp>
-#include <SDL.h>
 #include <SDL_image.h>
-#if !USEFMOD
-#include <SDL_mixer.h>
-#endif
 
 class Camera;
 
@@ -21,15 +17,12 @@ class Game
 		void draw();
 		void handleEvents();
 		void update();
-		SDL_Texture* loadImage(std::string location);
 		// Variables
-		bool isRunning;
-		int init;
 	public:
+		bool isRunning;
 		// Constructor
 		Game();
 		// Variables
-		SDL_Renderer* renderer;
 		SDL_Window* window;
 		FMOD::System* fmodSystem;
 
@@ -45,4 +38,4 @@ class Game
 		int score = 100;
 };
 
-#endif
+#endif // !GAME_HPP

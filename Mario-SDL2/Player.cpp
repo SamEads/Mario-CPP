@@ -2,22 +2,18 @@
 #include "Game.hpp"
 #include <iostream>
 #include "Player.hpp"
-#if !USEFMOD
-#include <SDL_mixer.h>
-#endif
 #include "AssetManager.hpp"
 
 Player::Player(Level* _level)
 {
-	// Entity::level = _level;
 	depth = -1;
-	// game = Entity::level->game;
-	texture = getTexture("mario");
+	texture = getTexture("player/mario");
 	identifier = "M";
 }
 
 void Player::update()
 {
+	Entity::update();
 	#if DEBUG
 	if (game->input->wasJustPressed(SDL_SCANCODE_L))
 	{
@@ -112,7 +108,7 @@ void Player::update()
 				isSkidding = true;
 			}
 			if (vel.y == 0)
-				flipSpr = (moveDir < 0) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+				flipSpr = (moveDir < 0) ? FLIP_HORIZONTAL : FLIP_NONE;
 			if (spd.x * moveDir < maxSpd)
 				spd.x += accel * moveDir;
 		}
@@ -203,7 +199,7 @@ void Player::update()
 
 void Player::animate()
 {
-	texture = (character == LUIGI) ? getTexture("luigi") : getTexture("mario");
+	texture = (character == LUIGI) ? getTexture("player/luigi") : getTexture("player/mario");
 	imgY = (int)powerup;
 	switch (powerup)
 	{

@@ -190,7 +190,7 @@ bool camAdjusting = false;
 void Level::update()
 {
 	int mpX, mpY;
-	trueMouseCoordinates(game->renderer, game->window, &mpX, &mpY);
+	trueMouseCoordinates(&mpX, &mpY);
 	mousePosition.x = mpX;
 	mousePosition.y = mpY;
 	int entityCountStart = entities.size();
@@ -223,7 +223,7 @@ void Level::update()
 		if (game->input->isPressed(0))
 		{
 			int x, y;
-			trueMouseCoordinates(game->renderer, game->window, &x, &y);
+			trueMouseCoordinates(&x, &y);
 			x = floor(((x + camPos.x) / 16) * 16);
 			y = floor((y / 16) * 16);
 			if (selectedCellY / 16 < arrangedTiles.size())
@@ -242,7 +242,7 @@ void Level::update()
 		else if (game->input->isPressed(1))
 		{
 			int x, y;
-			trueMouseCoordinates(game->renderer, game->window, &x, &y);
+			trueMouseCoordinates(&x, &y);
 			x = floor(((x + camPos.x) / 16) * 16);
 			y = floor((y / 16) * 16);
 			tiles[x / 16][y / 16]->cellX = -1;
@@ -299,7 +299,13 @@ void Level::update()
 		{
 			timeTick = 0;
 			if (time > 0)
+			{
 				time--;
+				if (time == 100)
+				{
+					playSound("hurry", false, false, 1.0f);
+				}
+			}
 		}
 	}
 	else
@@ -314,7 +320,7 @@ void Level::update()
 		}
 	}
 	camPos.y = player->position.y - game->gameHeight / 2;
-	camPos.x = SDL_clamp(camPos.x, 0, (levelWidth * 16) - game->gameWidth);
+	camPos.x = clamp(camPos.x, 0, (levelWidth * 16) - game->gameWidth);
 	// DEPTH SORTING
 	if (entityCountStart != entities.size())
 	{
@@ -328,78 +334,17 @@ void Level::sortEntityDepth()
 	{
 		return a->depth > b->depth;
 	});
-	std::cout << "Sorting entities" << std::endl;
 }
 
 Vector2 tilePositionOffset;
 void Level::draw()
 {
-#if USEOPENGL
 	glTranslatef(ceil(camPos.x) * -1, 0 * -1, 0);
-#endif
 	tilePositionOffset.x = 16;
 	tilePositionOffset.y = 16;
-#if DEBUG
-	int cellX = ceil(((int) mousePosition.x / 16) * 16);
-	int cellY = ceil(((int) mousePosition.y / 16) * 16);
-	if (inBlockMenu && editorMode)
-	{
-		resetView();
-		if (game->input->wasJustPressed(0))
-		{
-			selectedCellX = cellX - tilePositionOffset.x;
-			selectedCellY = cellY - tilePositionOffset.y;
-		}
-		int blinkedDist = (blinkBlockTimer >= 20) ? 1 : 0;
-		blinkBlockTimer++;
-		if (blinkBlockTimer > 40)
-		{
-			blinkBlockTimer = 0;
-		}
-		// TODO: flip
-		glColor4f(0.9, 1, 1, 1);
-
-		for (int _x = 0; _x < arrangedTiles.size(); _x++)
-		{
-			for (int _y = 0; _y < arrangedTiles[_x].size(); _y++)
-			{
-				drawTile((_y * 16) + tilePositionOffset.x, (_x * 16) + tilePositionOffset.y, arrangedTiles[_x][_y].cellX, arrangedTiles[_x][_y].cellY, false);
-			}
-		}
-
-		glRectf(30, 30, 60, 60);
-
-		SDL_Rect hoveredBlock;
-		SDL_Rect selectedBlock;
-		hoveredBlock.x = cellX;
-		hoveredBlock.y = cellY;
-		hoveredBlock.w = 16;
-		hoveredBlock.h = 16;
-		selectedBlock.x = selectedCellX + blinkedDist + tilePositionOffset.x;
-		selectedBlock.y = selectedCellY + blinkedDist + tilePositionOffset.y;
-		selectedBlock.w = hoveredBlock.w - (blinkedDist * 2);
-		selectedBlock.h = hoveredBlock.h - (blinkedDist * 2);
-		// Draw overlay on selected block
-		SDL_SetRenderDrawColor(game->renderer, 70, 0, 200, 255);
-		glColor4f(70.0f / 255.0f, 0, 200.0f / 255.0f, 1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBegin(GL_LINE_LOOP);
-		glVertex2f(selectedBlock.x, selectedBlock.y);
-		glVertex2f(selectedBlock.x + selectedBlock.w, selectedBlock.y);
-		glVertex2f(selectedBlock.x + selectedBlock.w, selectedBlock.y + selectedBlock.h);
-		glVertex2f(selectedBlock.x, selectedBlock.y + selectedBlock.h);
-		glEnd();
-		// Draw overlay on hovered block
-		glColor4f(70.0f / 255.0f, 0, 1.0f, 128.0f / 255.0f);
-		glRecti(hoveredBlock.x, hoveredBlock.y, hoveredBlock.x + hoveredBlock.w, hoveredBlock.y + hoveredBlock.h);
-		// Reset draw color
-		glColor4f(1, 1, 1, 1);
-		return;
-	}
-#endif
 	// Cut-out of the texture
-	SDL_Rect cloudSourceRect;
-	SDL_Rect cloudSizeRect;
+	Rect cloudSourceRect;
+	Rect cloudSizeRect;
 	cloudSourceRect.x = ceil(camPos.x / 2);
 	cloudSourceRect.y = 0;
 	cloudSourceRect.w = game->gameWidth;
@@ -409,7 +354,7 @@ void Level::draw()
 	cloudSizeRect.w = game->gameWidth;
 	cloudSizeRect.h = game->gameHeight;
 	// Render clouds
-	renderCopy(getTexture("clouds_bg"), &cloudSourceRect, &cloudSizeRect);
+	renderCopy(getTexture("bg/clouds_bg"), &cloudSourceRect, &cloudSizeRect);
 	// Render tiles in region
 	int curLevelWFocus = ceil(camPos.x / 16) + (game->gameWidth + 16) / 16;
 	for (int x = floor(camPos.x / 16); x < std::min(curLevelWFocus, levelWidth); x++)
@@ -454,4 +399,68 @@ void Level::draw()
 	}
 
 	hud->draw();
+
+#if DEBUG
+	int cellX = ceil(((int)mousePosition.x / 16) * 16);
+	int cellY = ceil(((int)mousePosition.y / 16) * 16);
+	if (inBlockMenu && editorMode)
+	{
+		resetView();
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glColor4f(0, 0, 0.2f, 0.8f);
+		glRecti(0, 0, game->gameWidth, game->gameHeight);
+		if (game->input->wasJustPressed(0))
+		{
+			selectedCellX = cellX - tilePositionOffset.x;
+			selectedCellY = cellY - tilePositionOffset.y;
+		}
+		int blinkedDist = 0;
+		if (blinkBlockTimer > 40)
+		{
+			blinkBlockTimer = 0;
+		}
+		// TODO: flip
+		glColor4f(1, 1, 1, 1);
+
+		for (int _x = 0; _x < arrangedTiles.size(); _x++)
+		{
+			for (int _y = 0; _y < arrangedTiles[_x].size(); _y++)
+			{
+				if (selectedCellX/16 == _y && selectedCellY/16 == _x)
+					glColor4f(1, 1, 1, 1);
+				else
+					glColor4f(0.7, 0.7, 0.9, 0.8);
+				drawTile((_y * 16) + tilePositionOffset.x, (_x * 16) + tilePositionOffset.y, arrangedTiles[_x][_y].cellX, arrangedTiles[_x][_y].cellY, false);
+			}
+		}
+
+		glColor4f(1, 1, 1, 1);
+
+		Recti hoveredBlock;
+		Recti selectedBlock;
+		hoveredBlock.x = cellX;
+		hoveredBlock.y = cellY;
+		hoveredBlock.w = 16;
+		hoveredBlock.h = 16;
+		selectedBlock.x = selectedCellX + blinkedDist + tilePositionOffset.x;
+		selectedBlock.y = selectedCellY + blinkedDist + tilePositionOffset.y;
+		selectedBlock.w = hoveredBlock.w - (blinkedDist * 2);
+		selectedBlock.h = hoveredBlock.h - (blinkedDist * 2);
+		// Draw overlay on selected block
+		glColor4f(70.0f / 255.0f, 0, 200.0f / 255.0f, 1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		/*glBegin(GL_LINE_LOOP);
+		glVertex2i(selectedBlock.x, selectedBlock.y);
+		glVertex2i(selectedBlock.x + selectedBlock.w, selectedBlock.y);
+		glVertex2i(selectedBlock.x + selectedBlock.w, selectedBlock.y + selectedBlock.h);
+		glVertex2i(selectedBlock.x, selectedBlock.y + selectedBlock.h);
+		glEnd();*/
+		// Draw overlay on hovered block
+		glColor4f(70.0f / 255.0f, 0, 1.0f, 128.0f / 255.0f);
+		glRecti(hoveredBlock.x, hoveredBlock.y, hoveredBlock.x + hoveredBlock.w, hoveredBlock.y + hoveredBlock.h);
+		// Reset draw color
+		glColor4f(1, 1, 1, 1);
+		return;
+	}
+#endif
 }

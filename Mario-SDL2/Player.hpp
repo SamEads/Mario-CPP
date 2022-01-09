@@ -3,7 +3,6 @@
 
 #include "Entity.hpp"
 #include "Core.hpp"
-#include <SDL.h>
 
 enum Powerup
 {
@@ -46,4 +45,4 @@ class Player : public Entity
 		Animation crouchAnim;
 };
 
-#endif
+#endif // !PLAYER_HPP

@@ -4,13 +4,14 @@
 #include "SDL.h"
 #include "Text.hpp"
 #include "AssetManager.hpp"
+#include <GL/GL.h>
 
 Texture* hudTexture;
 
 HUD::HUD(Level *_level)
 {
 	level = _level;
-	hudTexture = getTexture("hud");
+	hudTexture = getTexture("ui/hud");
 }
 
 std::string addLeadingZeroes(std::string str, int zeroes)
@@ -37,18 +38,19 @@ void HUD::draw()
 	resetView();
 	if (level->editorMode)
 	{
-		Text::draw(game->gameWidth - 8, 8, "LEVEL EDITOR MODE", right);
+		Text::draw(game->gameWidth - 8, 8, "LEVEL EDITOR MODE", RIGHT);
+		Text::draw(game->gameWidth - 8, 16, "PRESS E TO OPEN ITEMS LIST", RIGHT);
 		return;
 	}
 
 	// HUD element cut-out
-	SDL_Rect sourceRect;
+	Rect sourceRect;
 	sourceRect.x = 0;
 	sourceRect.y = 0;
 	sourceRect.w = 7;
 	sourceRect.h = 8;
 	// HUD element position & stretch
-	SDL_Rect destRect;
+	Rect destRect;
 	destRect.x = 32;
 	destRect.y = game->gameHeight - sourceRect.h - 12;
 	destRect.w = sourceRect.w;
@@ -83,18 +85,18 @@ void HUD::draw()
 	else
 		lerpScore = game->score;
 	Text::draw(24, 24, addLeadingZeroes(std::to_string((int) lerpScore), 6));
-	Text::draw(96, 24, "x" + addLeadingZeroes(std::to_string(game->coins), 2));
-	Text::draw(144, 16, "WORLD");
-	Text::draw(152, 24, "!-!");
-	Text::draw(game->gameWidth - 24, 16, "TIME", right);
-	Text::draw(game->gameWidth - 24, 24, addLeadingZeroes(std::to_string(level->time), 3), right);
-	SDL_Rect coinSrcRect, coinDstRect;
+	Text::draw((game->gameWidth / 2) - (game->gameWidth / 8), 24, "x" + addLeadingZeroes(std::to_string(game->coins), 2));
+	Text::draw((game->gameWidth/2) + (game->gameWidth / 8) - 16, 16, "WORLD");
+	Text::draw((game->gameWidth / 2) + (game->gameWidth / 8) - 8, 24, "!-!");
+	Text::draw(game->gameWidth - 24, 16, "TIME", RIGHT);
+	Text::draw(game->gameWidth - 24, 24, addLeadingZeroes(std::to_string(level->time), 3), RIGHT);
+	Rect coinSrcRect, coinDstRect;
 	float shineTick = floor(game->shineTick) * 5;
 	coinSrcRect.x = 44 + shineTick;
 	coinSrcRect.y = 0;
 	coinDstRect.w = coinSrcRect.w = 5;
 	coinDstRect.h = coinSrcRect.h = 8;
-	coinDstRect.x = 90;
+	coinDstRect.x = (game->gameWidth / 2) - (game->gameWidth / 8) - 8;
 	coinDstRect.y = 24;
 	renderCopy(hudTexture, &coinSrcRect, &coinDstRect);
 	lastHUDScore = game->score;

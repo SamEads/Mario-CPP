@@ -4,7 +4,7 @@
 
 Enemy::Enemy(Level* _level)
 {
-	texture = getTexture("foes");
+	texture = getTexture("entity/foes");
 }
 
 void Enemy::hurtEnemy(Player* player)
@@ -27,6 +27,7 @@ void Enemy::die()
 
 void Enemy::update()
 {
+	Entity::update();
 	curAnim.frames = { 0, 1 };
 	float lastSpd = spd.x;
 	vel.y = 0.2;

@@ -1,9 +1,6 @@
 #include "Core.hpp"
 #include "Game.hpp"
 #include <iostream>
-#if !USEFMOD
-#include <SDL_mixer.h>
-#endif
 #include "AssetManager.hpp"
 #include <SDL_image.h>
 
@@ -11,23 +8,44 @@ std::map<std::string, Sound*> sounds;
 std::map<std::string, Texture*> textures;
 int soundChannels = 0;
 
-unsigned int compileShader(unsigned int type, const std::string& source)
+GLuint compileShader(unsigned int type, const std::string& source)
 {
-	unsigned int id = glCreateShader(GL_VERTEX_SHADER);
+	// create shader & get c string from c++ string
+	GLuint id = glCreateShader(type);
 	const char* src = source.c_str();
+
+	// compile shader
 	glShaderSource(id, 1, &src, nullptr);
 	glCompileShader(id);
+
+	// error info
+	int result;
+	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+	if (result == false)
+	{
+		int length;
+		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+		char* message = (char*)alloca(length * sizeof(char));
+		glGetShaderInfoLog(id, length, &length, message);
+		std::cout << "FAILED TO COMPILE " << ((type == GL_VERTEX_SHADER) ? "VERTEX" : "FRAGMENT") << "SHADER" << std::endl;
+		glDeleteShader(id);
+		return 0;
+	}
+
+	// compile & return shader id
+	std::cout << "COMPILED " << ((type == GL_VERTEX_SHADER) ? "VERTEX" : "FRAGMENT") << " SHADER" << std::endl;
 	return id;
 }
 
 int createShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
-	unsigned int program = glCreateProgram();
-	unsigned int vs = glCreateShader(GL_VERTEX_SHADER);
-	unsigned int fs = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint program = glCreateProgram();
+	GLuint vs = compileShader(GL_VERTEX_SHADER, vertexShader);
+	GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
-	glAttachShader(program, vs);
+	//glAttachShader(program, vs);
 	glAttachShader(program, fs);
+
 	glLinkProgram(program);
 	glValidateProgram(program);
 
@@ -45,10 +63,6 @@ Texture* getTexture(std::string textureDirectory)
 	{
 		SDL_Surface* tempSurface = IMG_Load(("Assets/Images/" + textureDirectory + ".png").c_str());
 		Texture* emplaceTex = new Texture();
-#if !USEOPENGL
-		SDL_Texture* tex = SDL_CreateTextureFromSurface(game->renderer, tempSurface);
-		emplaceTex->sdlTexture = tex;
-#else
 		GLuint glTexID;
 		int mode;
 		glGenTextures(1, &glTexID);
@@ -60,7 +74,6 @@ Texture* getTexture(std::string textureDirectory)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		emplaceTex->id = glTexID;
-#endif
 		textures.emplace(textureDirectory, emplaceTex);
 		emplaceTex->width = tempSurface->w;
 		emplaceTex->height = tempSurface->h;
@@ -78,8 +91,7 @@ void freeTextures()
 {
 	for (auto it = textures.begin(); it != textures.end(); it++)
 	{
-		SDL_Texture* tex = it->second->sdlTexture;
-		SDL_DestroyTexture(tex);
+		glDeleteTextures(1, &it->second->id);
 	}
 	textures = {};
 }
@@ -102,21 +114,12 @@ void playSound(std::string soundDirectory, bool loops, bool stopPrevious, float 
 	// If sound does not exist in map, add it
 	if (soundIt == sounds.end())
 	{
-#if USEFMOD
 		FMOD::Sound* playSound;
 		game->fmodSystem->createSound(("Assets/Sounds/" + soundDirectory + ".wav").c_str(), FMOD_DEFAULT, 0, &playSound);
 		sound = new Sound();
 		sound->fmodSound = playSound;
 		FMOD::Channel* ch = 0;
 		sound->fmodChannel = ch;
-#else
-		Mix_Chunk* playSound = Mix_LoadWAV(("Assets/Sounds/" + soundDirectory + ".wav").c_str());
-		sound = new Sound();
-		sound->mixChunk = playSound;
-		sound->mixChannel = soundChannels;
-		sounds.emplace(soundDirectory, sound);
-		soundChannels++;
-#endif
 		sounds.emplace(soundDirectory, sound);
 		soundChannels++;
 	}
@@ -127,7 +130,6 @@ void playSound(std::string soundDirectory, bool loops, bool stopPrevious, float 
 	if (loops)
 	{
 		bool isPlaying;
-#if USEFMOD
 		unsigned int soundLength;
 		unsigned int soundPosition;
 		sound->fmodChannel->isPlaying(&isPlaying);
@@ -135,19 +137,10 @@ void playSound(std::string soundDirectory, bool loops, bool stopPrevious, float 
 		sound->fmodChannel->getPosition(&soundPosition, FMOD_TIMEUNIT_MS);
 		if (soundPosition >= soundLength)
 			isPlaying = false;
-#else
-		isPlaying = Mix_Playing(sound->mixChannel);
-#endif
 		if (isPlaying)
 			return;
 	}
-#if USEFMOD
 	if (stopPrevious)
 		sound->fmodChannel->stop();
 	game->fmodSystem->playSound(sound->fmodSound, 0, false, &sound->fmodChannel);
-#else
-	if (stopPrevious)
-		Mix_HaltChannel(sound->mixChannel);
-	Mix_PlayChannel(sound->mixChannel, sound->mixChunk, loops);
-#endif
 }

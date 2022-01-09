@@ -3,15 +3,50 @@
 #include "AssetManager.hpp"
 
 Game *game = NULL;
-void initFunctions(Game *_game)
+unsigned int palShader = 0;
+void initCore(Game *_game)
 {
 	game = _game;
+	std::srand(std::time(nullptr));
 }
 
-void drawTile(int x, int y, int tileX, int tileY, bool followCam)
+void initShaders()
 {
-	SDL_Rect srcRect;
-	SDL_Rect sizeRect;
+	std::string vertex = 
+		"#version 330 core\n"
+		"layout (location = 0) in vec2 inPosition;\n"
+		"layout (location = 1) in vec4 inColor;\n"
+		"layout (location = 2) in vec2 inTextureCoord;\n"
+		"out vec2 outPosition;\n"
+		"out vec4 outColor;\n"
+		"out vec2 outTexcoord;\n"
+		"void main()\n"
+		"{\n"
+		"	outPosition = inPosition;\n"
+		"	outColor = inColor;\n"
+		"	outTexcoord = inTextureCoord;\n"
+		"}";
+	std::string fragment =
+		"#version 330 core\n"
+		"in vec2 outPosition;\n"
+		"in vec4 outColor;\n"
+		"in vec2 outTexcoord;\n"
+		"out vec4 fragColor;\n"
+		"uniform sampler2D baseTexture;\n"
+		"void main()\n"
+		"{\n"
+		"	vec4 src = texture2D(baseTexture, outTexcoord);\n"
+		"	fragColor = src;\n"
+		"}";
+	std::cout << vertex << std::endl;
+	std::cout << fragment << std::endl;
+	palShader = createShader(vertex, fragment);
+}
+
+void drawTile(uint16_t x, uint16_t y, uint16_t tileX, uint16_t tileY, bool followCam)
+{
+	Rect srcRect;
+	Rect sizeRect;
 	srcRect.x = tileX * 16;
 	srcRect.y = tileY * 16;
 	sizeRect.w = srcRect.w = 16;
@@ -23,7 +58,7 @@ void drawTile(int x, int y, int tileX, int tileY, bool followCam)
 		int floatTick = floor(game->shineTick);
 		srcRect.x += floatTick * 16;
 	}
-	renderCopy(getTexture("tiles"), &srcRect, &sizeRect, SDL_FLIP_NONE);
+	renderCopy(getTexture("tiles/tiles"), &srcRect, &sizeRect, FLIP_NONE);
 }
 
 void resetView()
@@ -36,11 +71,8 @@ void resetView()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-int renderCopy(Texture* texture, const SDL_Rect* srcRect, const SDL_Rect* destRect, SDL_RendererFlip flipSpr)
+int renderCopy(Texture* texture, const Rect* srcRect, const Rect* destRect, FlipSprite flipSpr)
 {
-	#if !USEOPENGL
-	return SDL_RenderCopy(game->renderer, texture->sdlTexture, srcRect, destRect);
-	#else
 	GLfloat minx = destRect->x;
 	GLfloat miny = destRect->y;
 	GLfloat maxx = destRect->x + destRect->w;
@@ -50,11 +82,11 @@ int renderCopy(Texture* texture, const SDL_Rect* srcRect, const SDL_Rect* destRe
 	GLfloat minv = (GLfloat)srcRect->y / texture->height;
 	GLfloat maxv = (GLfloat)(srcRect->y + srcRect->h) / texture->height;
 
-	SDL_FPoint *centerPoint = new SDL_FPoint();
+	Point *centerPoint = new Point();
 	centerPoint->x = (destRect->w / 2);
 	centerPoint->y = (destRect->h / 2);
 
-	if (flipSpr & SDL_FLIP_HORIZONTAL)
+	if (flipSpr & FLIP_HORIZONTAL)
 	{
 		minx = destRect->w - centerPoint->x;
 		maxx = -centerPoint->x;
@@ -65,7 +97,7 @@ int renderCopy(Texture* texture, const SDL_Rect* srcRect, const SDL_Rect* destRe
 		maxx = destRect->w - centerPoint->x;
 	}
 
-	if (flipSpr & SDL_FLIP_VERTICAL)
+	if (flipSpr & FLIP_VERTICAL)
 	{
 		miny = destRect->h - centerPoint->y;
 		maxy = -centerPoint->y;
@@ -79,7 +111,7 @@ int renderCopy(Texture* texture, const SDL_Rect* srcRect, const SDL_Rect* destRe
 	glBindTexture(GL_TEXTURE_2D, texture->id);
 	glPushMatrix();
 	glTranslatef((GLfloat)destRect->x + centerPoint->x, (GLfloat)destRect->y + centerPoint->y, (GLfloat)0.0);
-	glRotated(0, (GLdouble)0.0, (GLdouble)0.0, (GLdouble)1.0);
+	glRotated(0, (GLdouble)1.0, (GLdouble)0.0, (GLdouble)0.0);
 	glBegin(GL_QUADS);
 	glTexCoord2f(maxu, minv);
 	glVertex2f(maxx, miny);
@@ -93,46 +125,43 @@ int renderCopy(Texture* texture, const SDL_Rect* srcRect, const SDL_Rect* destRe
 	glPopMatrix();
 	delete centerPoint;
 	return 0;
-	#endif
 }
 
-void trueMouseCoordinates(SDL_Renderer* renderer, SDL_Window* window, int* logicalMouseX, int* logicalMouseY)
+void trueMouseCoordinates(int* logicalMouseX, int* logicalMouseY)
 {
-	int realMouseX, realMouseY;
-	int wWidth, wHeight;
-	int rLogicalWidth, rLogicalHeight;
-	int rRealWidth, rRealHeight;
-	float rScaleX, rScaleY;
-	int rMidpointY, wMidpointY;
-	int rMidpointX, wMidpointX;
-	int rY, rX;
-
-	SDL_GetMouseState(&realMouseX, &realMouseY);
-	SDL_GetWindowSize(window, &wWidth, &wHeight);
-	wMidpointY = wHeight / 2;
-	wMidpointX = wWidth / 2;
-
 	int glW, glH;
-	SDL_GL_GetDrawableSize(window, &glW, &glH);
+	SDL_GetMouseState(logicalMouseX, logicalMouseY);
+	SDL_GL_GetDrawableSize(game->window, &glW, &glH);
 	float ratio = (float)glH / game->gameHeight;
-	rLogicalWidth = game->gameWidth;
-	rLogicalHeight = game->gameHeight;
-	rScaleX = rScaleY = ratio;
-	rRealWidth = (float)rLogicalWidth * (float)rScaleX;
-	rRealHeight = (float)rLogicalHeight * (float)rScaleY;
-	rMidpointY = rRealHeight / 2;
-	rMidpointX = rRealWidth / 2;
-	rY = wMidpointY - rMidpointY;
-	rX = wMidpointX - rMidpointX;
-
-	int adjustedMouseY = realMouseY - rY; // takes into account any border when keeping aspect ratio
-	int adjustedMouseX = realMouseX - rX;
-	*logicalMouseX = (float)adjustedMouseX / (float)rRealWidth * (float)rLogicalWidth;
-	*logicalMouseY = (float)adjustedMouseY / (float)rRealHeight * (float)rLogicalHeight;
-
+	float dispWidth = 0;
+	float dispHeight = 0;
+	if (game->gameWidth * ratio < glW)
+	{
+		dispWidth = game->gameWidth * ratio;
+		glViewport((glW - dispWidth) / 2, 0, dispWidth, glH);
+		*logicalMouseX = (*logicalMouseX /= ratio) - (int)(((float)glW / (float)ratio) - (float)game->gameWidth) / 2.f;
+		*logicalMouseY /= ratio;
+	}
+	else
+	{
+		ratio = (float)glW / game->gameWidth;
+		dispHeight = game->gameHeight * ratio;
+		glViewport(0, (glH - dispHeight) / 2, glW, dispHeight);
+		*logicalMouseX /= ratio;
+		*logicalMouseY = (*logicalMouseY /= ratio) - (int)(((float)glH / (float)ratio) - (float)game->gameHeight) / 2.f;
+	}
 }
 
 float lerp(float a, float b, float t)
 {
 	return a + t * (b - a);
+}
+
+float clamp(float value, float min, float max)
+{
+	if (value < min)
+		return min;
+	if (value > max)
+		return max;
+	return value;
 }

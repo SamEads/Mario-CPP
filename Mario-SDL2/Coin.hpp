@@ -7,4 +7,4 @@ class Coin : public Sprite
 {
 };
 
-#endif
+#endif // !COIN_HPP

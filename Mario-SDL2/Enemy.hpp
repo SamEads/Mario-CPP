@@ -16,4 +16,4 @@ class Enemy : public Entity
 		virtual void update();
 };
 
-#endif
+#endif // !ENEMY_HPP

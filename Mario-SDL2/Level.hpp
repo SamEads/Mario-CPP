@@ -12,7 +12,7 @@ class Level
 {
 	private:
 	public:
-		int time = 400;
+		int time = 108;
 		int timeTick = 0;
 		Level(Game* game);
 		void draw();
@@ -43,4 +43,4 @@ class Level
 		};
 };
 
-#endif
+#endif // !LEVEL_HPP

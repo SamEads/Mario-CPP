@@ -6,11 +6,10 @@
 #include "AssetManager.hpp"
 
 const std::string Text::textOrder = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ*!.-x";
-
 void Text::draw(int x, int y, std::string text, Alignment alignment)
 {
-	SDL_Rect srcRect;
-	SDL_Rect destRect;
+	Rect srcRect;
+	Rect destRect;
 	destRect.x = srcRect.x = srcRect.y = 0;
 	destRect.w = destRect.h = srcRect.w = srcRect.h = 8;
 	destRect.y = y;
@@ -20,7 +19,7 @@ void Text::draw(int x, int y, std::string text, Alignment alignment)
 		int rand = std::rand() % (1000 - 0 + 1);
 		int position = textOrder.find(text[i]);
 		int _x;
-		if (alignment == right)
+		if (alignment == RIGHT)
 		{
 			_x = x - (j * 8);
 			j--;
@@ -29,6 +28,6 @@ void Text::draw(int x, int y, std::string text, Alignment alignment)
 			_x = x + (i * 8);
 		srcRect.x = position * 8;
 		destRect.x = _x;
-		renderCopy(getTexture("font"), &srcRect, &destRect);
+		renderCopy(getTexture("ui/font"), &srcRect, &destRect);
 	}
 }

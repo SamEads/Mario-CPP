@@ -8,6 +8,16 @@ void Entity::updatePosition()
 	position += spd;
 }
 
+void Entity::update()
+{
+
+}
+
+void Entity::postUpdate()
+{
+	positionLast = position;
+}
+
 /**
 * INCREDIBLY UNOPTIMIZED WITH NON-AUTOMATED CODE!!! Go back to this!
 * */
@@ -18,8 +28,6 @@ void Entity::collide()
 		std::cout << "ENTITY DOES NOT HAVE LEVEL AND OR GAME REFERENCE" << std::endl;
 		return;
 	}
-	int texWidth = 32;
-	int texHeight = 32;
 	int curLWidthMaxFocus = (int) ceil((position.x + texWidth + texHeight) / texWidth);
 	int curLWidthMinFocus = (int) floor((position.x - texHeight) / texWidth);
 	Rect hitbox = getHitbox();
@@ -30,9 +38,9 @@ void Entity::collide()
 	bool downCollide = false;
 	bumpedHead = false;
 
-	for (int i = (int) (hitbox.x - 4 - fabsf(spd.x)); i <= hitbox.x + 1 + hitbox.w + fabsf(spd.x); i++)
+	for (int i = (int) (hitbox.getLeft() - 4 - fabsf(spd.x)); i <= hitbox.getRight() + fabsf(spd.x) + 4; i++)
 	{
-		for (int j = (int) (hitbox.y - 1 - fabsf(spd.y)); j <= hitbox.y + 1 + hitbox.h + fabsf(spd.y); j++)
+		for (int j = (int)(hitbox.y - 1 - fabsf(spd.y)); j <= hitbox.y + 1 + hitbox.h + fabsf(spd.y); j++)
 		{
 			int xCheck = (int)floor(i / 16);
 			int yCheck = (int)floor(j / 16);
@@ -48,13 +56,8 @@ void Entity::collide()
 			if (tile->cellX == -1 || tile->cellY == -1)
 				continue;
 
-			Rect tileRealPosition;
-			tileRealPosition.x = (int) (xCheck * 16);
-			tileRealPosition.y = (int) (yCheck * 16);
-			tileRealPosition.w = tile->width;
-			tileRealPosition.h = tile->height;
+			Recti tileRealPosition { xCheck * 16, yCheck * 16, tile->width, tile->height };
 
-			// Down
 			if (spd.y >= 0 && !downCollide && !upCollide)
 			{
 				if ((hitbox.getBottom() >= tileRealPosition.getTop())
@@ -121,7 +124,7 @@ Rect Entity::getHitbox()
 	hitbox.x = position.x + leftClip;
 	hitbox.y = position.y + topClip;
 	hitbox.w = (int) (texWidth - leftClip - rightClip);
-	hitbox.h = (int) (texHeight - topClip);
+	hitbox.h = (int) (texHeight - topClip - bottomClip);
 	return hitbox;
 }
 
@@ -153,9 +156,9 @@ void Entity::draw()
 		imgX = curAnim.frames[(int)floor(curFrame)];
 	else
 		imgX = 0;
-	SDL_Rect srcRect;
-	SDL_Rect sizeRect;
-	SDL_Point centerPoint;
+	Rect srcRect;
+	Rect sizeRect;
+	Vector2 centerPoint;
 	srcRect.x = (int)floor(imgX) * texWidth;
 	srcRect.y = (int)floor(imgY) * texHeight;
 	sizeRect.w = srcRect.w = texWidth;
@@ -164,9 +167,12 @@ void Entity::draw()
 	sizeRect.y = (position.y) + 1;
 	centerPoint.x = texWidth / 2;
 	centerPoint.y = texHeight / 2;
-#if !USEOPENGL
-	SDL_RenderCopyEx(game->renderer, texture->sdlTexture, &srcRect, &sizeRect, 0, NULL, flipSpr);
-#else
+	//glDisable(GL_BLEND);
+	//glDisable(GL_TEXTURE_2D);
+	//glUseProgram(palShader);
+	//glUniform1f(glGetUniformLocation(palShader, "baseTexture"), texture->id);
 	renderCopy(texture, &srcRect, &sizeRect, flipSpr);
-#endif
+	//glUseProgram(0);
+	glEnable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
 }

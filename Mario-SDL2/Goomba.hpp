@@ -17,4 +17,4 @@ class Goomba : public Enemy
 		int stompTimer = 0;
 };
 
-#endif
+#endif // !GOOMBA_HPP
